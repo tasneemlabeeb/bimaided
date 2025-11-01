@@ -1,0 +1,153 @@
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { useToast } from "@/hooks/use-toast";
+import { Check, X } from "lucide-react";
+
+interface LeaveRequestsProps {
+  onUpdate: () => void;
+}
+
+const LeaveRequests = ({ onUpdate }: LeaveRequestsProps) => {
+  const [requests, setRequests] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
+
+  useEffect(() => {
+    fetchLeaveRequests();
+  }, []);
+
+  const fetchLeaveRequests = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("attendance")
+        .select(`
+          *,
+          employees(first_name, last_name, email)
+        `)
+        .eq("status", "Leave")
+        .order("date", { ascending: false });
+
+      if (error) throw error;
+      setRequests(data || []);
+    } catch (error) {
+      console.error("Error fetching leave requests:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleApprove = async (requestId: string) => {
+    try {
+      const { error } = await supabase
+        .from("attendance")
+        .update({ leave_approved: true })
+        .eq("id", requestId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Leave approved",
+        description: "The leave request has been approved.",
+      });
+
+      fetchLeaveRequests();
+      onUpdate();
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleReject = async (requestId: string) => {
+    try {
+      const { error } = await supabase
+        .from("attendance")
+        .delete()
+        .eq("id", requestId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Leave rejected",
+        description: "The leave request has been rejected and removed.",
+      });
+
+      fetchLeaveRequests();
+      onUpdate();
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
+  if (loading) {
+    return <div>Loading leave requests...</div>;
+  }
+
+  return (
+    <div className="overflow-x-auto">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Employee</TableHead>
+            <TableHead>Leave Type</TableHead>
+            <TableHead>Date</TableHead>
+            <TableHead>Reason</TableHead>
+            <TableHead>Status</TableHead>
+            <TableHead>Actions</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {requests.map((request) => (
+            <TableRow key={request.id}>
+              <TableCell className="font-medium">
+                {request.employees?.first_name} {request.employees?.last_name}
+              </TableCell>
+              <TableCell>{request.leave_type}</TableCell>
+              <TableCell>{new Date(request.date).toLocaleDateString()}</TableCell>
+              <TableCell>{request.leave_reason || "N/A"}</TableCell>
+              <TableCell>
+                <Badge variant={request.leave_approved ? "default" : "secondary"}>
+                  {request.leave_approved ? "Approved" : "Pending"}
+                </Badge>
+              </TableCell>
+              <TableCell>
+                {!request.leave_approved && (
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      variant="default"
+                      onClick={() => handleApprove(request.id)}
+                    >
+                      <Check size={16} className="mr-1" />
+                      Approve
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="destructive"
+                      onClick={() => handleReject(request.id)}
+                    >
+                      <X size={16} className="mr-1" />
+                      Reject
+                    </Button>
+                  </div>
+                )}
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </div>
+  );
+};
+
+export default LeaveRequests;
