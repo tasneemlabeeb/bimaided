@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Check, X } from "lucide-react";
+import { Check, X, FileText, ExternalLink } from "lucide-react";
 
 interface LeaveRequestsProps {
   onUpdate: () => void;
@@ -115,6 +115,7 @@ const LeaveRequests = ({ onUpdate }: LeaveRequestsProps) => {
             <TableHead>Leave Type</TableHead>
             <TableHead>Date</TableHead>
             <TableHead>Reason</TableHead>
+            <TableHead>Document</TableHead>
             <TableHead>Supervisor Status</TableHead>
             <TableHead>Admin Status</TableHead>
             <TableHead>Actions</TableHead>
@@ -129,6 +130,22 @@ const LeaveRequests = ({ onUpdate }: LeaveRequestsProps) => {
               <TableCell>{request.leave_type}</TableCell>
               <TableCell>{new Date(request.date).toLocaleDateString()}</TableCell>
               <TableCell>{request.leave_reason || "N/A"}</TableCell>
+              <TableCell>
+                {request.supporting_document_url ? (
+                  <a
+                    href={request.supporting_document_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-1 text-blue-600 hover:text-blue-800 hover:underline"
+                  >
+                    <FileText size={16} />
+                    <span className="text-sm">View</span>
+                    <ExternalLink size={12} />
+                  </a>
+                ) : (
+                  <span className="text-sm text-gray-400">No document</span>
+                )}
+              </TableCell>
               <TableCell>
                 <Badge variant={request.supervisor_approved ? "default" : "secondary"}>
                   {request.supervisor_approved ? "Approved" : "Pending"}

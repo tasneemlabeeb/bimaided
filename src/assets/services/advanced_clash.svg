@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 120">
+  <rect width="100%" height="100%" fill="#fff1f2" rx="8"/>
+  <g transform="translate(30,20)" fill="#b91c1c">
+    <rect x="0" y="0" width="40" height="40" rx="4" />
+    <rect x="30" y="20" width="40" height="40" rx="4" />
+  </g>
+  <text x="100" y="106" font-size="12" text-anchor="middle" fill="#b91c1c">Clash Detection</text>
+</svg>

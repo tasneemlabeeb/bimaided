@@ -5,21 +5,101 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { User, Calendar, FileText, LogOut, Briefcase, Users } from "lucide-react";
+import { User, Calendar, FileText, LogOut, Briefcase, Users, ClipboardList } from "lucide-react";
 import EmployeeProfile from "@/components/employee/EmployeeProfile";
 import LeaveRequestForm from "@/components/employee/LeaveRequestForm";
 import AttendanceHistory from "@/components/employee/AttendanceHistory";
 import SupervisorLeaveRequests from "@/components/admin/SupervisorLeaveRequests";
+import MyAssignments from "@/components/employee/MyAssignments";
+import SupervisorAssignmentTeams from "@/components/employee/SupervisorAssignmentTeams";
 
 const EmployeeDashboard = () => {
   const [employeeData, setEmployeeData] = useState<any>(null);
   const [leaveBalance, setLeaveBalance] = useState<any>(null);
   const [isSupervisor, setIsSupervisor] = useState(false);
+  const [isAssignmentSupervisor, setIsAssignmentSupervisor] = useState(false);
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const { toast } = useToast();
 
   useEffect(() => {
-    fetchEmployeeData();
+    let isMounted = true;
+
+    const fetchData = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user || !isMounted) return;
+
+        const { data: employee, error: empError } = await supabase
+          .from("employees")
+          .select(`
+            *,
+            departments!employees_department_id_fkey(name),
+            designations(name)
+          `)
+          .eq("user_id", user.id)
+          .single();
+
+        if (empError) {
+          console.error("Error fetching employee:", empError);
+          if (isMounted) setLoading(false);
+          return;
+        }
+
+        if (!isMounted) return;
+        setEmployeeData(employee);
+
+        // Check if this employee is a supervisor
+        const { count } = await supabase
+          .from("employees")
+          .select("*", { count: "exact", head: true })
+          .eq("supervisor_id", employee.id);
+
+        if (isMounted) {
+          setIsSupervisor((count || 0) > 0);
+        }
+
+        // Check if this employee is a supervisor for any assignments
+        // Wrap in try-catch in case assignments table doesn't exist yet
+        try {
+          const { count: assignmentSupervisorCount, error: assignmentError } = await supabase
+            .from("assignments" as any)
+            .select("*", { count: "exact", head: true })
+            .eq("supervisor_id", employee.id);
+
+          if (!assignmentError && isMounted) {
+            setIsAssignmentSupervisor((assignmentSupervisorCount || 0) > 0);
+          }
+        } catch (assignmentErr) {
+          console.log("Assignments feature not yet available");
+          if (isMounted) {
+            setIsAssignmentSupervisor(false);
+          }
+        }
+
+        const currentYear = new Date().getFullYear();
+        const { data: balance } = await supabase
+          .from("leave_balances")
+          .select("*")
+          .eq("employee_id", employee.id)
+          .eq("year", currentYear)
+          .single();
+
+        if (isMounted) {
+          setLeaveBalance(balance);
+          setLoading(false);
+        }
+      } catch (error) {
+        console.error("Error fetching employee data:", error);
+        if (isMounted) setLoading(false);
+      }
+    };
+
+    fetchData();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   const fetchEmployeeData = async () => {
@@ -29,7 +109,11 @@ const EmployeeDashboard = () => {
 
       const { data: employee } = await supabase
         .from("employees")
-        .select("*, departments(name), designations(name)")
+        .select(`
+          *,
+          departments!employees_department_id_fkey(name),
+          designations(name)
+        `)
         .eq("user_id", user.id)
         .single();
 
@@ -66,10 +150,13 @@ const EmployeeDashboard = () => {
     navigate("/login");
   };
 
-  if (!employeeData) {
+  if (loading || !employeeData) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="text-lg">Loading...</div>
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-lg text-muted-foreground">Loading employee data...</p>
+        </div>
       </div>
     );
   }
@@ -145,6 +232,8 @@ const EmployeeDashboard = () => {
         <Tabs defaultValue="profile" className="space-y-4">
           <TabsList>
             <TabsTrigger value="profile">My Profile</TabsTrigger>
+            <TabsTrigger value="assignments">My Assignments</TabsTrigger>
+            {isAssignmentSupervisor && <TabsTrigger value="supervised-assignments">Supervised Assignments</TabsTrigger>}
             {isSupervisor && <TabsTrigger value="team-leaves">Team Leaves</TabsTrigger>}
             <TabsTrigger value="leave-request">Request Leave</TabsTrigger>
             <TabsTrigger value="attendance">Attendance History</TabsTrigger>
@@ -160,6 +249,14 @@ const EmployeeDashboard = () => {
                 <EmployeeProfile employee={employeeData} />
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="assignments">
+            <MyAssignments />
+          </TabsContent>
+
+          <TabsContent value="supervised-assignments">
+            <SupervisorAssignmentTeams />
           </TabsContent>
 
           <TabsContent value="team-leaves">

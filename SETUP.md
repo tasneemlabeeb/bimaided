@@ -30,6 +30,21 @@ Or create your admin user through the Supabase dashboard:
 3. Copy their user_id
 4. Run: `INSERT INTO user_roles (user_id, role) VALUES ('USER_ID_HERE', 'Admin');`
 
+### 1.1 Fix Missing Employee Roles
+
+If employees were created but cannot log in (getting "Role not found" error), run this SQL to assign the Employee role to all users who have an employee record but no role:
+
+```sql
+-- Assign Employee role to all employees who don't have a role yet
+INSERT INTO user_roles (user_id, role)
+SELECT e.user_id, 'Employee'::user_role
+FROM employees e
+WHERE e.user_id IS NOT NULL
+  AND NOT EXISTS (
+    SELECT 1 FROM user_roles ur WHERE ur.user_id = e.user_id
+  );
+```
+
 ### 2. Add Departments and Designations
 
 Before adding employees, set up your organizational structure:

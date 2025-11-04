@@ -12,6 +12,7 @@ interface AddEmployeeFormProps {
 
 const AddEmployeeForm = ({ onSuccess }: AddEmployeeFormProps) => {
   const [loading, setLoading] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(true);
   const [departments, setDepartments] = useState<any[]>([]);
   const [designations, setDesignations] = useState<any[]>([]);
   const [employees, setEmployees] = useState<any[]>([]);
@@ -34,26 +35,56 @@ const AddEmployeeForm = ({ onSuccess }: AddEmployeeFormProps) => {
   });
 
   useEffect(() => {
-    fetchDepartments();
-    fetchDesignations();
-    fetchEmployees();
+    loadInitialData();
   }, []);
 
+  const loadInitialData = async () => {
+    try {
+      setInitialLoading(true);
+      await Promise.all([
+        fetchDepartments(),
+        fetchDesignations(),
+        fetchEmployees(),
+      ]);
+    } catch (error: any) {
+      console.error("Error loading initial data:", error);
+      toast({
+        title: "Error loading form data",
+        description: error.message || "Failed to load departments, designations, or employees",
+        variant: "destructive",
+      });
+    } finally {
+      setInitialLoading(false);
+    }
+  };
+
   const fetchDepartments = async () => {
-    const { data } = await supabase.from("departments").select("*");
+    const { data, error } = await supabase.from("departments").select("*");
+    if (error) {
+      console.error("Error fetching departments:", error);
+      throw error;
+    }
     setDepartments(data || []);
   };
 
   const fetchDesignations = async () => {
-    const { data } = await supabase.from("designations").select("*");
+    const { data, error } = await supabase.from("designations").select("*");
+    if (error) {
+      console.error("Error fetching designations:", error);
+      throw error;
+    }
     setDesignations(data || []);
   };
 
   const fetchEmployees = async () => {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from("employees")
       .select("id, first_name, last_name, designations(name)")
       .eq("employment_status", "Active");
+    if (error) {
+      console.error("Error fetching employees:", error);
+      throw error;
+    }
     setEmployees(data || []);
   };
 
@@ -154,6 +185,57 @@ const AddEmployeeForm = ({ onSuccess }: AddEmployeeFormProps) => {
       setLoading(false);
     }
   };
+
+  if (initialLoading) {
+    return (
+      <div className="flex items-center justify-center py-8">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading form data...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show warning if departments or designations are missing
+  if (departments.length === 0 || designations.length === 0) {
+    return (
+      <div className="space-y-4">
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+          <h3 className="font-semibold text-yellow-800 mb-2">Setup Required</h3>
+          <p className="text-yellow-700 mb-4">
+            Before adding employees, you need to set up departments and designations in your database.
+          </p>
+          <div className="bg-white rounded p-3 text-sm">
+            <p className="font-medium mb-2">Run this SQL in your Supabase SQL Editor:</p>
+            <pre className="bg-gray-100 p-2 rounded text-xs overflow-x-auto">
+{`-- Add Departments
+INSERT INTO departments (name, description) VALUES 
+  ('Architecture', 'Architectural design and BIM modeling'),
+  ('Engineering', 'Structural and MEP engineering'),
+  ('VDC', 'Virtual Design and Construction'),
+  ('Human Resources', 'HR and administration'),
+  ('Management', 'Project and business management');
+
+-- Add Designations (get department_id from departments table)
+INSERT INTO designations (name, level, department_id) VALUES 
+  ('BIM Manager', 'Senior', (SELECT id FROM departments WHERE name = 'Architecture' LIMIT 1)),
+  ('Senior Architect', 'Senior', (SELECT id FROM departments WHERE name = 'Architecture' LIMIT 1)),
+  ('BIM Modeler', 'Mid', (SELECT id FROM departments WHERE name = 'Architecture' LIMIT 1)),
+  ('Revit Technician', 'Junior', (SELECT id FROM departments WHERE name = 'Architecture' LIMIT 1));`}
+            </pre>
+          </div>
+          <Button
+            type="button"
+            onClick={loadInitialData}
+            className="mt-4"
+          >
+            Refresh After Setup
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
@@ -287,12 +369,12 @@ const AddEmployeeForm = ({ onSuccess }: AddEmployeeFormProps) => {
 
         <div className="space-y-2">
           <Label htmlFor="supervisor">Reporting Manager</Label>
-          <Select value={formData.supervisorId} onValueChange={(value) => setFormData({ ...formData, supervisorId: value })}>
+          <Select value={formData.supervisorId} onValueChange={(value) => setFormData({ ...formData, supervisorId: value === "none" ? "" : value })}>
             <SelectTrigger>
               <SelectValue placeholder="Select reporting manager" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">None</SelectItem>
+              <SelectItem value="none">None</SelectItem>
               {employees.map((emp) => (
                 <SelectItem key={emp.id} value={emp.id}>
                   {emp.first_name} {emp.last_name} - {emp.designations?.name}

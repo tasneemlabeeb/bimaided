@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
-import heroBg from "@/assets/hero-bg.jpg";
+import ParallaxHero from "@/components/ParallaxHero";
 import { Building2, Layers, Box, Globe, ArrowRight, CheckCircle2 } from "lucide-react";
 
 const Landing = () => {
@@ -41,37 +41,8 @@ const Landing = () => {
     <div className="min-h-screen">
       <Navigation />
       
-      {/* Hero Section */}
-      <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden">
-        <div 
-          className="absolute inset-0 bg-cover bg-center"
-          style={{ backgroundImage: `url(${heroBg})` }}
-        >
-          <div className="absolute inset-0 bg-gradient-to-r from-primary/90 to-primary/70" />
-        </div>
-        
-        <div className="relative container mx-auto px-4 text-center text-white">
-          <h1 className="text-5xl md:text-7xl font-bold mb-6 animate-fade-in">
-            Building the Future with BIM Excellence
-          </h1>
-          <p className="text-xl md:text-2xl mb-8 max-w-3xl mx-auto text-white/90">
-            Transform your construction projects with cutting-edge Building Information Modeling solutions
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link to="/services">
-              <Button size="lg" variant="secondary" className="text-lg px-8">
-                Our Services
-              </Button>
-            </Link>
-            <Link to="/projects">
-              <Button size="lg" variant="outline" className="text-lg px-8 border-white text-white hover:bg-white hover:text-primary">
-                View Projects
-                <ArrowRight className="ml-2" size={20} />
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </section>
+      {/* Parallax Hero Section */}
+      <ParallaxHero />
 
       {/* Stats Section */}
       <section className="py-16 bg-secondary">

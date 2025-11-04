@@ -7,7 +7,16 @@ const Footer = () => {
       <div className="container mx-auto px-4 py-12">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div>
-            <h3 className="text-xl font-bold text-primary mb-4">BIMaided</h3>
+            <img 
+              src="/Logo-BIMaided.png" 
+              alt="BIMaided Logo" 
+              className="h-16 w-auto mb-4"
+              onError={(e) => {
+                e.currentTarget.style.display = 'none';
+                e.currentTarget.nextElementSibling?.classList.remove('hidden');
+              }}
+            />
+            <h3 className="text-xl font-bold text-primary mb-4 hidden">BIMaided</h3>
             <p className="text-sm text-muted-foreground">
               Leading BIM solutions provider delivering excellence in Building Information Modeling services worldwide.
             </p>
@@ -27,6 +36,9 @@ const Footer = () => {
               </Link>
               <Link to="/career" className="text-sm text-muted-foreground hover:text-primary transition-colors">
                 Career
+              </Link>
+              <Link to="/login" className="text-sm text-muted-foreground hover:text-primary transition-colors">
+                Employee Portal
               </Link>
             </div>
           </div>

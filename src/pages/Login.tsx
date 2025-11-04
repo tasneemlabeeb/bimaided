@@ -17,20 +17,26 @@ const Login = () => {
   useEffect(() => {
     // Check if user is already logged in
     const checkUser = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        // Check user role
-        const { data: roleData } = await supabase
-          .from("user_roles")
-          .select("role")
-          .eq("user_id", session.user.id)
-          .single();
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
+          // Check user role
+          const { data: roleData, error: roleError } = await supabase
+            .from("user_roles")
+            .select("role")
+            .eq("user_id", session.user.id)
+            .single();
 
-        if (roleData?.role === "Admin") {
-          navigate("/admin");
-        } else {
-          navigate("/employee");
+          if (!roleError && roleData) {
+            if (roleData.role === "Admin") {
+              navigate("/admin");
+            } else if (roleData.role === "Employee") {
+              navigate("/employee");
+            }
+          }
         }
+      } catch (error) {
+        console.error("Error checking session:", error);
       }
     };
     checkUser();
@@ -50,27 +56,47 @@ const Login = () => {
 
       if (data.session) {
         // Check user role
-        const { data: roleData } = await supabase
+        const { data: roleData, error: roleError } = await supabase
           .from("user_roles")
           .select("role")
           .eq("user_id", data.session.user.id)
           .single();
 
-        if (roleData?.role === "Admin") {
-          navigate("/admin");
-        } else {
-          navigate("/employee");
+        if (roleError) {
+          console.error("Role fetch error:", roleError);
+          toast({
+            title: "Role not found",
+            description: "Your account doesn't have a role assigned. Please contact your administrator.",
+            variant: "destructive",
+          });
+          await supabase.auth.signOut();
+          return;
         }
 
         toast({
           title: "Welcome back!",
           description: "You have successfully logged in.",
         });
+
+        // Navigate based on role
+        if (roleData?.role === "Admin") {
+          navigate("/admin");
+        } else if (roleData?.role === "Employee") {
+          navigate("/employee");
+        } else {
+          toast({
+            title: "Invalid role",
+            description: "Your account has an invalid role. Please contact your administrator.",
+            variant: "destructive",
+          });
+          await supabase.auth.signOut();
+        }
       }
     } catch (error: any) {
+      console.error("Login error:", error);
       toast({
         title: "Login failed",
-        description: error.message,
+        description: error.message || "An error occurred during login. Please try again.",
         variant: "destructive",
       });
     } finally {

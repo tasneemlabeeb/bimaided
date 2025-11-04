@@ -5,25 +5,29 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Users, UserPlus, Calendar, LogOut } from "lucide-react";
+import { Users, UserPlus, Calendar, LogOut, Briefcase, ClipboardList } from "lucide-react";
 import AddEmployeeForm from "@/components/admin/AddEmployeeForm";
 import EmployeeList from "@/components/admin/EmployeeList";
 import LeaveRequests from "@/components/admin/LeaveRequests";
 import ProjectManager from "@/components/admin/ProjectManager";
 import CareerManager from "@/components/admin/CareerManager";
+import ApplicationManager from "@/components/admin/ApplicationManager";
+import AssignmentManager from "@/components/admin/AssignmentManager";
 
 const AdminDashboard = () => {
   const [stats, setStats] = useState({
     totalEmployees: 0,
     pendingLeaves: 0,
     activeEmployees: 0,
+    totalApplications: 0,
   });
+  const [refreshKey, setRefreshKey] = useState(0);
   const navigate = useNavigate();
   const { toast } = useToast();
 
   useEffect(() => {
     fetchStats();
-  }, []);
+  }, [refreshKey]);
 
   const fetchStats = async () => {
     try {
@@ -42,14 +46,25 @@ const AdminDashboard = () => {
         .eq("status", "Leave" as any)
         .eq("admin_approved", false);
 
+      // Get applications count (will work after migration is run)
+      const { count: applicationsCount } = await supabase
+        .from("job_applications" as any)
+        .select("*", { count: "exact", head: true });
+
       setStats({
         totalEmployees: employeesCount || 0,
         activeEmployees: activeCount || 0,
         pendingLeaves: pendingCount || 0,
+        totalApplications: applicationsCount || 0,
       });
     } catch (error) {
       console.error("Error fetching stats:", error);
     }
+  };
+
+  const handleEmployeeUpdate = () => {
+    fetchStats();
+    setRefreshKey((prev) => prev + 1);
   };
 
   const handleLogout = async () => {
@@ -75,7 +90,7 @@ const AdminDashboard = () => {
 
       <div className="container mx-auto px-4 py-8">
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <Card className="border-border">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Total Employees</CardTitle>
@@ -105,6 +120,16 @@ const AdminDashboard = () => {
               <div className="text-3xl font-bold">{stats.pendingLeaves}</div>
             </CardContent>
           </Card>
+
+          <Card className="border-border">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Job Applications</CardTitle>
+              <Briefcase className="text-primary" size={20} />
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold">{stats.totalApplications}</div>
+            </CardContent>
+          </Card>
         </div>
 
         {/* Main Content Tabs */}
@@ -113,8 +138,10 @@ const AdminDashboard = () => {
             <TabsTrigger value="employees">Employees</TabsTrigger>
             <TabsTrigger value="add-employee">Add Employee</TabsTrigger>
             <TabsTrigger value="leave-requests">Leave Requests</TabsTrigger>
+            <TabsTrigger value="assignments">Assignments</TabsTrigger>
             <TabsTrigger value="projects">Projects</TabsTrigger>
             <TabsTrigger value="careers">Career Postings</TabsTrigger>
+            <TabsTrigger value="applications">Job Applications</TabsTrigger>
           </TabsList>
 
           <TabsContent value="employees">
@@ -124,7 +151,7 @@ const AdminDashboard = () => {
                 <CardDescription>Manage your organization's employees</CardDescription>
               </CardHeader>
               <CardContent>
-                <EmployeeList onUpdate={fetchStats} />
+                <EmployeeList key={refreshKey} onUpdate={handleEmployeeUpdate} />
               </CardContent>
             </Card>
           </TabsContent>
@@ -136,7 +163,7 @@ const AdminDashboard = () => {
                 <CardDescription>Create a new employee account</CardDescription>
               </CardHeader>
               <CardContent>
-                <AddEmployeeForm onSuccess={fetchStats} />
+                <AddEmployeeForm onSuccess={handleEmployeeUpdate} />
               </CardContent>
             </Card>
           </TabsContent>
@@ -151,6 +178,10 @@ const AdminDashboard = () => {
                 <LeaveRequests onUpdate={fetchStats} />
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="assignments">
+            <AssignmentManager />
           </TabsContent>
 
           <TabsContent value="projects">
@@ -175,6 +206,10 @@ const AdminDashboard = () => {
                 <CareerManager />
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="applications">
+            <ApplicationManager />
           </TabsContent>
         </Tabs>
       </div>

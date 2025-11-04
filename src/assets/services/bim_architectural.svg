@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 120">
+  <rect width="100%" height="100%" fill="#eef2ff" rx="8"/>
+  <g fill="#0f172a" transform="translate(20,20)">
+    <rect x="0" y="20" width="30" height="50" rx="2" />
+    <rect x="40" y="0" width="30" height="70" rx="2" />
+    <rect x="80" y="10" width="20" height="60" rx="2" />
+  </g>
+  <text x="100" y="106" font-size="12" text-anchor="middle" fill="#0f172a">Architectural</text>
+</svg>

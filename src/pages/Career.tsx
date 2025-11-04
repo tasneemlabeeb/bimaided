@@ -3,17 +3,22 @@ import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { MapPin, Briefcase, Clock } from "lucide-react";
+import { MapPin, Briefcase, Clock, ExternalLink } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import JobApplicationDialog from "@/components/JobApplicationDialog";
+import JobDetailsDialog from "@/components/JobDetailsDialog";
 
 const Career = () => {
   const [openings, setOpenings] = useState<any[]>([]);
+  const [selectedJob, setSelectedJob] = useState<any>(null);
+  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+  const [isApplicationOpen, setIsApplicationOpen] = useState(false);
 
   useEffect(() => {
     const fetchCareerPostings = async () => {
       const { data } = await supabase
         .from("career_postings")
-        .select("*, departments(name)")
+        .select("*, departments!career_postings_department_id_fkey(name)")
         .eq("published", true)
         .order("posted_date", { ascending: false });
 
@@ -51,6 +56,22 @@ const Career = () => {
     "Remote work options",
     "Collaborative team environment",
   ];
+
+  const handleViewDetails = (job: any) => {
+    setSelectedJob(job);
+    setIsDetailsOpen(true);
+  };
+
+  const handleApplyClick = (job: any) => {
+    setSelectedJob(job);
+    setIsApplicationOpen(true);
+    setIsDetailsOpen(false);
+  };
+
+  const handleApplyFromDetails = () => {
+    setIsDetailsOpen(false);
+    setIsApplicationOpen(true);
+  };
 
   return (
     <div className="min-h-screen">
@@ -100,11 +121,23 @@ const Career = () => {
                 <Card key={index} className="border-border hover:shadow-lg transition-shadow">
                   <CardHeader>
                     <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
-                      <div>
+                      <div className="flex-1">
                         <CardTitle className="text-2xl mb-2">{job.title}</CardTitle>
-                        <CardDescription className="text-base">{job.description}</CardDescription>
+                        <CardDescription className="text-base line-clamp-2">
+                          {job.description}
+                        </CardDescription>
                       </div>
-                      <Button>Apply Now</Button>
+                      <div className="flex flex-col gap-2">
+                        <Button onClick={() => handleApplyClick(job)}>Apply Now</Button>
+                        <Button 
+                          variant="outline" 
+                          onClick={() => handleViewDetails(job)}
+                          className="gap-2"
+                        >
+                          View Details
+                          <ExternalLink size={14} />
+                        </Button>
+                      </div>
                     </div>
                   </CardHeader>
                   <CardContent>
@@ -131,6 +164,22 @@ const Career = () => {
       </section>
 
       <Footer />
+
+      {/* Job Details Dialog */}
+      <JobDetailsDialog
+        isOpen={isDetailsOpen}
+        onClose={() => setIsDetailsOpen(false)}
+        job={selectedJob}
+        onApply={handleApplyFromDetails}
+      />
+
+      {/* Job Application Dialog */}
+      <JobApplicationDialog
+        isOpen={isApplicationOpen}
+        onClose={() => setIsApplicationOpen(false)}
+        jobTitle={selectedJob?.title || ""}
+        jobId={selectedJob?.id}
+      />
     </div>
   );
 };

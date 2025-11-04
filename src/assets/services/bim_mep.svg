@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 120">
+  <rect width="100%" height="100%" fill="#fff7ed" rx="8"/>
+  <g transform="translate(30,25)" fill="#92400e">
+    <circle cx="10" cy="10" r="6" />
+    <rect x="30" y="0" width="60" height="12" rx="3" />
+    <circle cx="110" cy="10" r="6" />
+  </g>
+  <text x="100" y="106" font-size="12" text-anchor="middle" fill="#92400e">MEP</text>
+</svg>

@@ -40,7 +40,7 @@ const CareerManager = () => {
     try {
       const { data, error } = await supabase
         .from("career_postings")
-        .select("*, departments(name)")
+        .select("*, departments!career_postings_department_id_fkey(name)")
         .order("posted_date", { ascending: false });
 
       if (error) throw error;
