@@ -26,11 +26,10 @@ This guide shows you how to deploy both your React frontend and Node.js backend 
    - Branch: `main`
 
 3. **Configure Build Settings**
-   - Build Pack: **Docker** 
-   - Dockerfile Location: `Dockerfile`
-   - Port: `3000` (Nixpacks uses 3000 by default)
+   - Build Pack: **Nixpacks** (let Coolify auto-detect)
+   - Port: `3001` 
    - Health Check URL: `/api/health`
-   - **Important**: Make sure "Use Dockerfile" is enabled
+   - **Note**: Nixpacks will detect Node.js and use our start script
 
 #### Step 2: Environment Variables
 
@@ -49,7 +48,10 @@ EMAIL_USER=bimaided.website@gmail.com
 EMAIL_PASSWORD=rwgy biho ilda memw
 EMAIL_TO=tasneemlabeeb@gmail.com
 VITE_RECAPTCHA_SITE_KEY=6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI
+VITE_API_URL=http://dgg8cgw0g8kcwookogckokkw.72.60.222.97.sslip.io
 ```
+
+**Copy these from `.env.coolify` file to Coolify environment variables.**
 
 **Important:** Update `VITE_API_URL` with your actual Coolify app URL after deployment.
 
