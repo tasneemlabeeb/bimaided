@@ -423,6 +423,18 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 COMMENT ON FUNCTION has_role IS 'Check if a user has a specific role (admin/employee)';
 
+-- Function to get employee ID from user ID (prevents RLS infinite recursion)
+CREATE OR REPLACE FUNCTION get_employee_id_by_user(user_uuid UUID)
+RETURNS UUID
+LANGUAGE sql
+SECURITY DEFINER
+STABLE
+AS $$
+  SELECT id FROM employees WHERE user_id = user_uuid LIMIT 1;
+$$;
+
+COMMENT ON FUNCTION get_employee_id_by_user IS 'Security definer function to get employee ID from user ID without triggering RLS recursion';
+
 -- Function to automatically update updated_at timestamp
 CREATE OR REPLACE FUNCTION update_updated_at_column()
 RETURNS TRIGGER AS $$
@@ -536,9 +548,7 @@ CREATE POLICY "Supervisors can view their team"
   ON employees FOR SELECT
   TO authenticated
   USING (
-    supervisor_id IN (
-      SELECT id FROM employees WHERE user_id = auth.uid()
-    )
+    supervisor_id = get_employee_id_by_user(auth.uid())
   );
 
 CREATE POLICY "Admin can manage employees"
@@ -566,9 +576,7 @@ CREATE POLICY "Employees can view their own emergency contacts"
   ON emergency_contacts FOR SELECT
   TO authenticated
   USING (
-    employee_id IN (
-      SELECT id FROM employees WHERE user_id = auth.uid()
-    )
+    employee_id = get_employee_id_by_user(auth.uid())
   );
 
 CREATE POLICY "Admin can manage all emergency contacts"
@@ -583,9 +591,7 @@ CREATE POLICY "Employees can view their own documents"
   ON documents FOR SELECT
   TO authenticated
   USING (
-    employee_id IN (
-      SELECT id FROM employees WHERE user_id = auth.uid()
-    )
+    employee_id = get_employee_id_by_user(auth.uid())
   );
 
 CREATE POLICY "Admin can manage all documents"
@@ -600,9 +606,7 @@ CREATE POLICY "Employees can view their own salary"
   ON salaries FOR SELECT
   TO authenticated
   USING (
-    employee_id IN (
-      SELECT id FROM employees WHERE user_id = auth.uid()
-    )
+    employee_id = get_employee_id_by_user(auth.uid())
   );
 
 CREATE POLICY "Admin can manage all salaries"
@@ -617,9 +621,7 @@ CREATE POLICY "Employees can view their own leave balance"
   ON leave_balances FOR SELECT
   TO authenticated
   USING (
-    employee_id IN (
-      SELECT id FROM employees WHERE user_id = auth.uid()
-    )
+    employee_id = get_employee_id_by_user(auth.uid())
   );
 
 CREATE POLICY "Admin can manage all leave balances"
@@ -634,9 +636,7 @@ CREATE POLICY "Employees can view their own attendance"
   ON attendance FOR SELECT
   TO authenticated
   USING (
-    employee_id IN (
-      SELECT id FROM employees WHERE user_id = auth.uid()
-    )
+    employee_id = get_employee_id_by_user(auth.uid())
   );
 
 CREATE POLICY "Supervisors can view team attendance"
@@ -644,9 +644,7 @@ CREATE POLICY "Supervisors can view team attendance"
   TO authenticated
   USING (
     employee_id IN (
-      SELECT id FROM employees WHERE supervisor_id IN (
-        SELECT id FROM employees WHERE user_id = auth.uid()
-      )
+      SELECT id FROM employees WHERE supervisor_id = get_employee_id_by_user(auth.uid())
     )
   );
 
@@ -659,9 +657,7 @@ CREATE POLICY "Employees can insert their own attendance"
   ON attendance FOR INSERT
   TO authenticated
   WITH CHECK (
-    employee_id IN (
-      SELECT id FROM employees WHERE user_id = auth.uid()
-    )
+    employee_id = get_employee_id_by_user(auth.uid())
   );
 
 CREATE POLICY "Admin can manage all attendance"
@@ -676,9 +672,7 @@ CREATE POLICY "Employees can view their own assignments"
   ON project_assignments FOR SELECT
   TO authenticated
   USING (
-    employee_id IN (
-      SELECT id FROM employees WHERE user_id = auth.uid()
-    )
+    employee_id = get_employee_id_by_user(auth.uid())
   );
 
 CREATE POLICY "Supervisors can view team assignments"
@@ -686,9 +680,7 @@ CREATE POLICY "Supervisors can view team assignments"
   TO authenticated
   USING (
     employee_id IN (
-      SELECT id FROM employees WHERE supervisor_id IN (
-        SELECT id FROM employees WHERE user_id = auth.uid()
-      )
+      SELECT id FROM employees WHERE supervisor_id = get_employee_id_by_user(auth.uid())
     )
   );
 
