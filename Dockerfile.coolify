@@ -1,0 +1,42 @@
+# Coolify Deployment Configuration for BIM Portal
+# This file helps Coolify understand how to deploy your full-stack application
+
+# Frontend Build Configuration
+FROM node:18-alpine as frontend-build
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci --only=production
+COPY . .
+RUN npm run build
+
+# Backend Build
+FROM node:18-alpine as backend-build
+WORKDIR /app/server
+COPY server/package*.json ./
+RUN npm ci --only=production
+COPY server/ .
+
+# Production Image - Serves both frontend and backend
+FROM node:18-alpine as production
+WORKDIR /app
+
+# Install serve to host static frontend files
+RUN npm install -g serve
+
+# Copy backend files
+COPY --from=backend-build /app/server ./server
+WORKDIR /app/server
+RUN npm ci --only=production
+
+# Copy built frontend files
+COPY --from=frontend-build /app/dist ./public
+
+# Expose port
+EXPOSE 3001
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD curl -f http://localhost:3001/health || exit 1
+
+# Start the application
+CMD ["node", "index.js"]

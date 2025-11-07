@@ -12,8 +12,9 @@ import nodemailer from 'nodemailer';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-// Load environment variables from parent directory
+// Load environment variables from parent directory or current directory for production
 dotenv.config({ path: join(__dirname, '../.env') });
+dotenv.config(); // Also try current directory
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -21,6 +22,14 @@ const PORT = process.env.PORT || 3001;
 // Middleware
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
+
+// Serve static frontend files in production
+if (process.env.NODE_ENV === 'production') {
+  // Serve static files from the public directory (built frontend)
+  app.use(express.static(join(__dirname, 'public')));
+  
+  console.log('✅ Serving static files from:', join(__dirname, 'public'));
+}
 
 // Google Drive Configuration
 const GOOGLE_DRIVE_CREDENTIALS = {
@@ -883,8 +892,25 @@ Please respond to the customer at: ${email}
   }
 });
 
+// Serve React app for all non-API routes in production
+if (process.env.NODE_ENV === 'production') {
+  app.get('*', (req, res) => {
+    // Skip API routes
+    if (req.path.startsWith('/api/')) {
+      return res.status(404).json({ error: 'API endpoint not found' });
+    }
+    
+    res.sendFile(join(__dirname, 'public', 'index.html'));
+  });
+}
+
 // Start server
 app.listen(PORT, () => {
-  console.log(`🚀 BIMaided API Server running on port ${PORT}`);
+  console.log(`🚀 BIMaided ${process.env.NODE_ENV === 'production' ? 'Full Stack' : 'API'} Server running on port ${PORT}`);
   console.log(`📁 Google Drive Folder ID: ${FOLDER_ID}`);
+  
+  if (process.env.NODE_ENV === 'production') {
+    console.log(`📱 Frontend served from: ${join(__dirname, 'public')}`);
+    console.log(`🌐 Access your app at: http://localhost:${PORT}`);
+  }
 });
