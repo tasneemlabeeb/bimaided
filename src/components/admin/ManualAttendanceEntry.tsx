@@ -59,14 +59,27 @@ const ManualAttendanceEntry = ({ onSuccess }: ManualAttendanceEntryProps) => {
   }, [open]);
 
   const fetchEmployees = async () => {
-    const { data } = await supabase
-      .from("employees")
-      .select("id, first_name, last_name, employee_id")
-      .eq("status", "Active")
-      .order("first_name");
+    try {
+      const { data, error } = await supabase
+        .from("employees")
+        .select("id, first_name, last_name")
+        .eq("employment_status", "Active")
+        .order("first_name");
 
-    if (data) {
-      setEmployees(data);
+      if (error) {
+        console.error("Error fetching employees:", error);
+        toast({
+          title: "Error",
+          description: "Failed to load employees list",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      console.log("Fetched employees:", data);
+      setEmployees(data || []);
+    } catch (error) {
+      console.error("Error:", error);
     }
   };
 
@@ -95,17 +108,23 @@ const ManualAttendanceEntry = ({ onSuccess }: ManualAttendanceEntryProps) => {
         .eq("date", dateString)
         .single();
 
+      // Convert time strings to full timestamps
+      const check_in_timestamp = formData.check_in_time
+        ? `${dateString}T${formData.check_in_time}:00Z`
+        : null;
+      const check_out_timestamp = formData.check_out_time
+        ? `${dateString}T${formData.check_out_time}:00Z`
+        : null;
+
       if (existing) {
         // Update existing
         const { error } = await supabase
           .from("attendance")
           .update({
-            check_in_time: formData.check_in_time || null,
-            check_out_time: formData.check_out_time || null,
+            check_in_time: check_in_timestamp,
+            check_out_time: check_out_timestamp,
             status: formData.status,
-            admin_notes: formData.admin_notes,
             manually_added: true,
-            added_by: adminEmployee?.id,
             admin_approved: true,
             admin_approved_by: adminEmployee?.id,
             admin_approved_at: new Date().toISOString(),
@@ -118,12 +137,10 @@ const ManualAttendanceEntry = ({ onSuccess }: ManualAttendanceEntryProps) => {
         const { error } = await supabase.from("attendance").insert({
           employee_id: formData.employee_id,
           date: dateString,
-          check_in_time: formData.check_in_time || null,
-          check_out_time: formData.check_out_time || null,
+          check_in_time: check_in_timestamp,
+          check_out_time: check_out_timestamp,
           status: formData.status,
-          admin_notes: formData.admin_notes,
           manually_added: true,
-          added_by: adminEmployee?.id,
           admin_approved: true,
           admin_approved_by: adminEmployee?.id,
           admin_approved_at: new Date().toISOString(),
@@ -192,11 +209,17 @@ const ManualAttendanceEntry = ({ onSuccess }: ManualAttendanceEntryProps) => {
                   <SelectValue placeholder="Select employee" />
                 </SelectTrigger>
                 <SelectContent>
-                  {employees.map((emp) => (
-                    <SelectItem key={emp.id} value={emp.id}>
-                      {emp.first_name} {emp.last_name} ({emp.employee_id})
-                    </SelectItem>
-                  ))}
+                  {employees.length === 0 ? (
+                    <div className="p-2 text-sm text-muted-foreground">
+                      No active employees found
+                    </div>
+                  ) : (
+                    employees.map((emp) => (
+                      <SelectItem key={emp.id} value={emp.id}>
+                        {emp.first_name} {emp.last_name}
+                      </SelectItem>
+                    ))
+                  )}
                 </SelectContent>
               </Select>
             </div>

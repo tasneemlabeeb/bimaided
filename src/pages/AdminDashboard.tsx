@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Users, UserPlus, Calendar, LogOut, Briefcase, ClipboardList } from "lucide-react";
+import { Users, UserPlus, Calendar, LogOut, Briefcase, ClipboardList, Globe } from "lucide-react";
 import AddEmployeeForm from "@/components/admin/AddEmployeeForm";
 import EmployeeList from "@/components/admin/EmployeeList";
 import LeaveRequests from "@/components/admin/LeaveRequests";
@@ -14,6 +14,9 @@ import CareerManager from "@/components/admin/CareerManager";
 import ApplicationManager from "@/components/admin/ApplicationManager";
 import AssignmentManager from "@/components/admin/AssignmentManager";
 import ManualAttendanceEntry from "@/components/admin/ManualAttendanceEntry";
+import IPWhitelistManager from "@/components/admin/IPWhitelistManager";
+import AttendanceRecords from "@/components/admin/AttendanceRecords";
+import ContactInquiriesManager from "@/components/admin/ContactInquiriesManager";
 
 const AdminDashboard = () => {
   const [stats, setStats] = useState({
@@ -139,11 +142,16 @@ const AdminDashboard = () => {
             <TabsTrigger value="employees">Employees</TabsTrigger>
             <TabsTrigger value="add-employee">Add Employee</TabsTrigger>
             <TabsTrigger value="attendance">Attendance</TabsTrigger>
+            <TabsTrigger value="ip-whitelist">
+              <Globe size={16} className="mr-2" />
+              IP Whitelist
+            </TabsTrigger>
             <TabsTrigger value="leave-requests">Leave Requests</TabsTrigger>
             <TabsTrigger value="assignments">Assignments</TabsTrigger>
             <TabsTrigger value="projects">Projects</TabsTrigger>
             <TabsTrigger value="careers">Career Postings</TabsTrigger>
             <TabsTrigger value="applications">Job Applications</TabsTrigger>
+            <TabsTrigger value="contact-inquiries">Contact Inquiries</TabsTrigger>
           </TabsList>
 
           <TabsContent value="employees">
@@ -175,25 +183,18 @@ const AdminDashboard = () => {
               <CardHeader className="flex flex-row items-center justify-between">
                 <div>
                   <CardTitle>Attendance Management</CardTitle>
-                  <CardDescription>Manually add or update employee attendance records</CardDescription>
+                  <CardDescription>View and manage employee attendance records</CardDescription>
                 </div>
-                <ManualAttendanceEntry onSuccess={() => {}} />
+                <ManualAttendanceEntry onSuccess={() => setRefreshKey((prev) => prev + 1)} />
               </CardHeader>
               <CardContent>
-                <p className="text-sm text-muted-foreground mb-4">
-                  Use the "Add Manual Attendance" button to record attendance for employees who are working remotely or forgot to check in.
-                </p>
-                <div className="p-4 bg-muted/50 rounded-lg">
-                  <h4 className="font-semibold text-sm mb-2">Guidelines:</h4>
-                  <ul className="text-xs text-muted-foreground space-y-1">
-                    <li>• You can add attendance for any date (past or present)</li>
-                    <li>• Check-in and check-out times are optional</li>
-                    <li>• All manually added records are flagged for audit purposes</li>
-                    <li>• Employees can only check in from the office IP address</li>
-                  </ul>
-                </div>
+                <AttendanceRecords key={refreshKey} />
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="ip-whitelist">
+            <IPWhitelistManager />
           </TabsContent>
 
           <TabsContent value="leave-requests">
@@ -238,6 +239,18 @@ const AdminDashboard = () => {
 
           <TabsContent value="applications">
             <ApplicationManager />
+          </TabsContent>
+
+          <TabsContent value="contact-inquiries">
+            <Card className="border-border">
+              <CardHeader>
+                <CardTitle>Contact Form Inquiries</CardTitle>
+                <CardDescription>Manage and respond to website contact form submissions</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ContactInquiriesManager />
+              </CardContent>
+            </Card>
           </TabsContent>
         </Tabs>
       </div>

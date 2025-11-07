@@ -14,23 +14,37 @@ const AttendanceCheckIn = ({ employeeId }: AttendanceCheckInProps) => {
   const [todayAttendance, setTodayAttendance] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [userIp, setUserIp] = useState<string>("");
+  const [isWhitelisted, setIsWhitelisted] = useState(false);
   const { toast } = useToast();
-
-  // Office IP address - Change this to your actual office IP
-  const OFFICE_IP = "103.191.240.122"; // Replace with your actual office IP address
 
   useEffect(() => {
     fetchTodayAttendance();
-    fetchUserIp();
+    fetchUserIpAndCheckWhitelist();
   }, [employeeId]);
 
-  const fetchUserIp = async () => {
+  const fetchUserIpAndCheckWhitelist = async () => {
     try {
+      // Fetch current IP
       const response = await fetch('https://api.ipify.org?format=json');
       const data = await response.json();
       setUserIp(data.ip);
+
+      // Check if IP is whitelisted
+      const { data: whitelistData, error } = await supabase
+        .from("ip_whitelist")
+        .select("*")
+        .eq("ip_address", data.ip)
+        .eq("is_active", true)
+        .single();
+
+      if (!error && whitelistData) {
+        setIsWhitelisted(true);
+      } else {
+        setIsWhitelisted(false);
+      }
     } catch (error) {
       console.error("Error fetching IP:", error);
+      setIsWhitelisted(false);
     }
   };
 
@@ -58,10 +72,10 @@ const AttendanceCheckIn = ({ employeeId }: AttendanceCheckInProps) => {
       return;
     }
 
-    if (userIp !== OFFICE_IP) {
+    if (!isWhitelisted) {
       toast({
         title: "Access Denied",
-        description: "You can only check in from the office network.",
+        description: "Your IP address is not authorized for check-in. Please contact your administrator.",
         variant: "destructive",
       });
       return;
@@ -75,7 +89,7 @@ const AttendanceCheckIn = ({ employeeId }: AttendanceCheckInProps) => {
       const { error } = await supabase.from("attendance").insert({
         employee_id: employeeId,
         date: today,
-        check_in_time: now.split('T')[1].split('.')[0], // Extract time only
+        check_in_time: now, // Full timestamp with timezone
         ip_address: userIp,
         status: "Present",
         manually_added: false,
@@ -105,12 +119,11 @@ const AttendanceCheckIn = ({ employeeId }: AttendanceCheckInProps) => {
 
     setLoading(true);
     const now = new Date().toISOString();
-    const timeOnly = now.split('T')[1].split('.')[0]; // Extract time only
 
     try {
       const { error } = await supabase
         .from("attendance")
-        .update({ check_out_time: timeOnly })
+        .update({ check_out_time: now })
         .eq("id", todayAttendance.id);
 
       if (error) throw error;
@@ -134,7 +147,6 @@ const AttendanceCheckIn = ({ employeeId }: AttendanceCheckInProps) => {
 
   const isCheckedIn = todayAttendance && todayAttendance.check_in_time;
   const isCheckedOut = todayAttendance && todayAttendance.check_out_time;
-  const isFromOffice = userIp === OFFICE_IP;
 
   return (
     <div className="space-y-6">
@@ -153,11 +165,11 @@ const AttendanceCheckIn = ({ employeeId }: AttendanceCheckInProps) => {
           {/* IP Status */}
           <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
             <div className="flex items-center gap-2">
-              <MapPin size={18} className={isFromOffice ? "text-green-500" : "text-orange-500"} />
+              <MapPin size={18} className={isWhitelisted ? "text-green-500" : "text-orange-500"} />
               <span className="text-sm font-medium">Network Status:</span>
             </div>
-            <span className={`text-sm font-semibold ${isFromOffice ? "text-green-600" : "text-orange-600"}`}>
-              {isFromOffice ? "Office Network" : "External Network"}
+            <span className={`text-sm font-semibold ${isWhitelisted ? "text-green-600" : "text-orange-600"}`}>
+              {isWhitelisted ? "Authorized Network" : "Unauthorized Network"}
             </span>
           </div>
 
@@ -193,7 +205,7 @@ const AttendanceCheckIn = ({ employeeId }: AttendanceCheckInProps) => {
             {!isCheckedIn ? (
               <Button
                 onClick={handleCheckIn}
-                disabled={loading || !isFromOffice}
+                disabled={loading || !isWhitelisted}
                 className="w-full"
                 size="lg"
               >
@@ -220,10 +232,10 @@ const AttendanceCheckIn = ({ employeeId }: AttendanceCheckInProps) => {
             )}
           </div>
 
-          {!isFromOffice && !isCheckedIn && (
+          {!isWhitelisted && !isCheckedIn && (
             <div className="p-3 bg-orange-50 dark:bg-orange-950/20 border border-orange-200 dark:border-orange-800 rounded-lg">
               <p className="text-sm text-orange-700 dark:text-orange-400">
-                You must be connected to the office network to check in.
+                Your IP address is not authorized for check-in. Please contact your administrator to whitelist this network.
               </p>
             </div>
           )}
@@ -235,10 +247,11 @@ const AttendanceCheckIn = ({ employeeId }: AttendanceCheckInProps) => {
         <CardContent className="pt-6">
           <h4 className="font-semibold mb-2 text-sm">Attendance Guidelines:</h4>
           <ul className="text-xs text-muted-foreground space-y-1">
-            <li>• Check-in is only available from the office network</li>
+            <li>• Check-in is only available from authorized networks</li>
             <li>• Please check in when you arrive at the office</li>
             <li>• Remember to check out before leaving</li>
             <li>• If you forget to check in, contact your admin</li>
+            <li>• Contact your admin to whitelist new office locations</li>
           </ul>
         </CardContent>
       </Card>

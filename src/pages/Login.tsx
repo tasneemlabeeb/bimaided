@@ -8,7 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
 const Login = () => {
-  const [email, setEmail] = useState("");
+  const [emailOrEid, setEmailOrEid] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
@@ -47,8 +47,32 @@ const Login = () => {
     setLoading(true);
 
     try {
+      let loginEmail = emailOrEid;
+
+      // Check if the input is an EID (doesn't contain @)
+      if (!emailOrEid.includes('@')) {
+        // Look up the email from the employees table using EID
+        const { data: employeeData, error: employeeError } = await supabase
+          .from('employees')
+          .select('email')
+          .eq('eid', emailOrEid)
+          .single();
+
+        if (employeeError || !employeeData) {
+          toast({
+            title: "Login failed",
+            description: "Invalid EID or email. Please check your credentials.",
+            variant: "destructive",
+          });
+          setLoading(false);
+          return;
+        }
+
+        loginEmail = employeeData.email;
+      }
+
       const { data, error } = await supabase.auth.signInWithPassword({
-        email,
+        email: loginEmail,
         password,
       });
 
@@ -114,13 +138,13 @@ const Login = () => {
         <CardContent>
           <form onSubmit={handleLogin} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="emailOrEid">Email or EID</Label>
               <Input
-                id="email"
-                type="email"
-                placeholder="your.email@bimaided.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                id="emailOrEid"
+                type="text"
+                placeholder="your.email@bimaided.com or EMP001"
+                value={emailOrEid}
+                onChange={(e) => setEmailOrEid(e.target.value)}
                 required
               />
             </div>

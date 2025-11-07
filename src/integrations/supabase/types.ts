@@ -16,9 +16,11 @@ export type Database = {
     Tables: {
       attendance: {
         Row: {
+          added_by: string | null
           admin_approved: boolean | null
           admin_approved_at: string | null
           admin_approved_by: string | null
+          admin_notes: string | null
           approved_by: string | null
           check_in_time: string | null
           check_out_time: string | null
@@ -26,19 +28,26 @@ export type Database = {
           date: string
           employee_id: string
           id: string
+          ip_address: string | null
           leave_reason: string | null
+          leave_start_date: string | null
+          leave_end_date: string | null
           leave_type: Database["public"]["Enums"]["leave_type"] | null
+          manually_added: boolean | null
           status: Database["public"]["Enums"]["attendance_status"]
           supervisor_approved: boolean | null
           supervisor_approved_at: string | null
           supervisor_approved_by: string | null
+          supporting_document_url: string | null
           total_hours: number | null
           updated_at: string | null
         }
         Insert: {
+          added_by?: string | null
           admin_approved?: boolean | null
           admin_approved_at?: string | null
           admin_approved_by?: string | null
+          admin_notes?: string | null
           approved_by?: string | null
           check_in_time?: string | null
           check_out_time?: string | null
@@ -46,19 +55,26 @@ export type Database = {
           date: string
           employee_id: string
           id?: string
+          ip_address?: string | null
           leave_reason?: string | null
+          leave_start_date?: string | null
+          leave_end_date?: string | null
           leave_type?: Database["public"]["Enums"]["leave_type"] | null
+          manually_added?: boolean | null
           status: Database["public"]["Enums"]["attendance_status"]
           supervisor_approved?: boolean | null
           supervisor_approved_at?: string | null
           supervisor_approved_by?: string | null
+          supporting_document_url?: string | null
           total_hours?: number | null
           updated_at?: string | null
         }
         Update: {
+          added_by?: string | null
           admin_approved?: boolean | null
           admin_approved_at?: string | null
           admin_approved_by?: string | null
+          admin_notes?: string | null
           approved_by?: string | null
           check_in_time?: string | null
           check_out_time?: string | null
@@ -66,12 +82,17 @@ export type Database = {
           date?: string
           employee_id?: string
           id?: string
+          ip_address?: string | null
           leave_reason?: string | null
+          leave_start_date?: string | null
+          leave_end_date?: string | null
           leave_type?: Database["public"]["Enums"]["leave_type"] | null
+          manually_added?: boolean | null
           status?: Database["public"]["Enums"]["attendance_status"]
           supervisor_approved?: boolean | null
           supervisor_approved_at?: string | null
           supervisor_approved_by?: string | null
+          supporting_document_url?: string | null
           total_hours?: number | null
           updated_at?: string | null
         }
@@ -160,6 +181,56 @@ export type Database = {
             referencedRelation: "departments"
             referencedColumns: ["id"]
           },
+        ]
+      }
+      contact_inquiries: {
+        Row: {
+          id: string
+          name: string
+          email: string
+          phone: string
+          subject: string
+          message: string
+          status: string
+          admin_notes: string | null
+          assigned_to: string | null
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          name: string
+          email: string
+          phone: string
+          subject: string
+          message: string
+          status?: string
+          admin_notes?: string | null
+          assigned_to?: string | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          name?: string
+          email?: string
+          phone?: string
+          subject?: string
+          message?: string
+          status?: string
+          admin_notes?: string | null
+          assigned_to?: string | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contact_inquiries_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["user_id"]
+          }
         ]
       }
       departments: {
@@ -311,6 +382,39 @@ export type Database = {
           },
         ]
       }
+      ip_whitelist: {
+        Row: {
+          id: string
+          ip_address: string
+          location_name: string | null
+          description: string | null
+          is_active: boolean
+          added_by: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          ip_address: string
+          location_name?: string | null
+          description?: string | null
+          is_active?: boolean
+          added_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          ip_address?: string
+          location_name?: string | null
+          description?: string | null
+          is_active?: boolean
+          added_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       employees: {
         Row: {
           address: string | null
@@ -318,6 +422,7 @@ export type Database = {
           date_of_birth: string | null
           department_id: string | null
           designation_id: string | null
+          eid: string | null
           email: string
           employment_status:
             | Database["public"]["Enums"]["employment_status"]
@@ -341,6 +446,7 @@ export type Database = {
           date_of_birth?: string | null
           department_id?: string | null
           designation_id?: string | null
+          eid?: string | null
           email: string
           employment_status?:
             | Database["public"]["Enums"]["employment_status"]
@@ -364,6 +470,7 @@ export type Database = {
           date_of_birth?: string | null
           department_id?: string | null
           designation_id?: string | null
+          eid?: string | null
           email?: string
           employment_status?:
             | Database["public"]["Enums"]["employment_status"]
@@ -508,6 +615,12 @@ export type Database = {
           description: string
           id: string
           image_url: string | null
+          gallery_image_1: string | null
+          gallery_image_2: string | null
+          gallery_image_3: string | null
+          gallery_image_4: string | null
+          gallery_image_5: string | null
+          gallery_image_6: string | null
           project_value: number | null
           published: boolean | null
           title: string
@@ -521,6 +634,12 @@ export type Database = {
           description: string
           id?: string
           image_url?: string | null
+          gallery_image_1?: string | null
+          gallery_image_2?: string | null
+          gallery_image_3?: string | null
+          gallery_image_4?: string | null
+          gallery_image_5?: string | null
+          gallery_image_6?: string | null
           project_value?: number | null
           published?: boolean | null
           title: string
@@ -534,6 +653,12 @@ export type Database = {
           description?: string
           id?: string
           image_url?: string | null
+          gallery_image_1?: string | null
+          gallery_image_2?: string | null
+          gallery_image_3?: string | null
+          gallery_image_4?: string | null
+          gallery_image_5?: string | null
+          gallery_image_6?: string | null
           project_value?: number | null
           published?: boolean | null
           title?: string

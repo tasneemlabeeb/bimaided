@@ -3,8 +3,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { RefreshCw, Trash2, Shield, ShieldOff } from "lucide-react";
+import { RefreshCw, Trash2, Shield, ShieldOff, Edit, Key } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import EditEmployeeDialog from "./EditEmployeeDialog";
+import ResetPasswordDialog from "./ResetPasswordDialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -24,6 +26,8 @@ const EmployeeList = ({ onUpdate }: EmployeeListProps) => {
   const [employees, setEmployees] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [resetPasswordDialogOpen, setResetPasswordDialogOpen] = useState(false);
   const [selectedEmployee, setSelectedEmployee] = useState<any>(null);
   const [actionLoading, setActionLoading] = useState(false);
   const { toast } = useToast();
@@ -38,16 +42,7 @@ const EmployeeList = ({ onUpdate }: EmployeeListProps) => {
       const { data, error } = await supabase
         .from("employees")
         .select(`
-          id,
-          user_id,
-          first_name,
-          last_name,
-          email,
-          employment_status,
-          joining_date,
-          created_at,
-          department_id,
-          designation_id,
+          *,
           departments!employees_department_id_fkey(name),
           designations(name)
         `)
@@ -217,6 +212,7 @@ const EmployeeList = ({ onUpdate }: EmployeeListProps) => {
         <TableHeader>
           <TableRow>
             <TableHead>Name</TableHead>
+            <TableHead>EID</TableHead>
             <TableHead>Email</TableHead>
             <TableHead>Department</TableHead>
             <TableHead>Designation</TableHead>
@@ -233,6 +229,13 @@ const EmployeeList = ({ onUpdate }: EmployeeListProps) => {
               <TableRow key={employee.id}>
                 <TableCell className="font-medium">
                   {employee.first_name} {employee.last_name}
+                </TableCell>
+                <TableCell>
+                  {employee.eid ? (
+                    <Badge variant="secondary">{employee.eid}</Badge>
+                  ) : (
+                    <span className="text-muted-foreground text-sm">—</span>
+                  )}
                 </TableCell>
                 <TableCell>{employee.email}</TableCell>
                 <TableCell>{employee.departments?.name || "N/A"}</TableCell>
@@ -256,7 +259,31 @@ const EmployeeList = ({ onUpdate }: EmployeeListProps) => {
                 </TableCell>
                 <TableCell>{new Date(employee.joining_date).toLocaleDateString()}</TableCell>
                 <TableCell className="text-right">
-                  <div className="flex justify-end gap-2">
+                  <div className="flex justify-end gap-2 flex-wrap">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setSelectedEmployee(employee);
+                        setEditDialogOpen(true);
+                      }}
+                      disabled={actionLoading}
+                      title="Edit employee"
+                    >
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setSelectedEmployee(employee);
+                        setResetPasswordDialogOpen(true);
+                      }}
+                      disabled={actionLoading}
+                      title="Reset password"
+                    >
+                      <Key className="h-4 w-4" />
+                    </Button>
                     <Button
                       variant={isAdmin ? "outline" : "default"}
                       size="sm"
@@ -265,15 +292,9 @@ const EmployeeList = ({ onUpdate }: EmployeeListProps) => {
                       title={isAdmin ? "Revoke admin access" : "Grant admin access"}
                     >
                       {isAdmin ? (
-                        <>
-                          <ShieldOff className="h-4 w-4 mr-1" />
-                          Revoke Admin
-                        </>
+                        <ShieldOff className="h-4 w-4" />
                       ) : (
-                        <>
-                          <Shield className="h-4 w-4 mr-1" />
-                          Make Admin
-                        </>
+                        <Shield className="h-4 w-4" />
                       )}
                     </Button>
                     <Button
@@ -318,6 +339,26 @@ const EmployeeList = ({ onUpdate }: EmployeeListProps) => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Edit Employee Dialog */}
+      <EditEmployeeDialog
+        employee={selectedEmployee}
+        open={editDialogOpen}
+        onOpenChange={setEditDialogOpen}
+        onSuccess={() => {
+          fetchEmployees();
+          onUpdate();
+        }}
+      />
+
+      {/* Reset Password Dialog */}
+      <ResetPasswordDialog
+        employeeId={selectedEmployee?.id}
+        employeeName={`${selectedEmployee?.first_name || ''} ${selectedEmployee?.last_name || ''}`}
+        employeeEmail={selectedEmployee?.email || ''}
+        open={resetPasswordDialogOpen}
+        onOpenChange={setResetPasswordDialogOpen}
+      />
     </div>
   );
 };

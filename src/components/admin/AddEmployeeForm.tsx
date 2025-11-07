@@ -22,6 +22,7 @@ const AddEmployeeForm = ({ onSuccess }: AddEmployeeFormProps) => {
     firstName: "",
     lastName: "",
     email: "",
+    eid: "",
     gender: "",
     dateOfBirth: "",
     nationalId: "",
@@ -93,41 +94,35 @@ const AddEmployeeForm = ({ onSuccess }: AddEmployeeFormProps) => {
     setLoading(true);
 
     try {
-      // Use the custom function to create employee account (bypasses email confirmation)
-      const { data, error } = await supabase.rpc('create_employee_account' as any, {
-        p_email: formData.email,
-        p_password: formData.password,
-        p_first_name: formData.firstName,
-        p_last_name: formData.lastName,
-        p_gender: formData.gender || null,
-        p_date_of_birth: formData.dateOfBirth || null,
-        p_national_id: formData.nationalId || null,
-        p_phone_number: formData.phone || null,
-        p_address: formData.address || null,
-        p_joining_date: formData.joiningDate || new Date().toISOString().split('T')[0],
-        p_department_id: formData.departmentId || null,
-        p_designation_id: formData.designationId || null,
-        p_supervisor_id: formData.supervisorId || null,
+      // Call the API endpoint to create employee account
+      const response = await fetch('http://localhost:3001/api/create-employee', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: formData.email,
+          eid: formData.eid || null,
+          password: formData.password,
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          gender: formData.gender || null,
+          dateOfBirth: formData.dateOfBirth || null,
+          nationalId: formData.nationalId || null,
+          phoneNumber: formData.phone || null,
+          address: formData.address || null,
+          joiningDate: formData.joiningDate || new Date().toISOString().split('T')[0],
+          departmentId: formData.departmentId || null,
+          designationId: formData.designationId || null,
+          supervisorId: formData.supervisorId || null,
+        }),
       });
 
-      console.log("RPC Response - data:", JSON.stringify(data, null, 2));
-      console.log("RPC Response - error:", JSON.stringify(error, null, 2));
+      const result = await response.json();
+      console.log("API Response:", JSON.stringify(result, null, 2));
 
-      if (error) {
-        console.error("Error creating employee:", error);
-        toast({
-          title: "Error creating employee",
-          description: error.message || "Failed to create employee account",
-          variant: "destructive",
-        });
-        throw new Error(error.message || "Failed to create employee account");
-      }
-
-      // Check if the function returned an error
-      const result = data as any;
-      console.log("Function result:", JSON.stringify(result, null, 2));
-      
-      if (result && !result.success) {
+      if (!response.ok || !result.success) {
+        console.error("Error creating employee:", result);
         toast({
           title: "Error creating employee",
           description: result.message || result.error || "Failed to create employee account",
@@ -145,6 +140,7 @@ const AddEmployeeForm = ({ onSuccess }: AddEmployeeFormProps) => {
         firstName: "",
         lastName: "",
         email: "",
+        eid: "",
         gender: "",
         dateOfBirth: "",
         nationalId: "",
@@ -264,6 +260,19 @@ INSERT INTO designations (name, level, department_id) VALUES
             required
             minLength={6}
           />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="eid">Employee ID (EID)</Label>
+          <Input
+            id="eid"
+            value={formData.eid}
+            onChange={(e) => setFormData({ ...formData, eid: e.target.value })}
+            placeholder="e.g., EMP001, BIM-2024-001"
+          />
+          <p className="text-xs text-muted-foreground">
+            Unique identifier for employee login. Employee can use EID or email to login.
+          </p>
         </div>
 
         <div className="space-y-2">

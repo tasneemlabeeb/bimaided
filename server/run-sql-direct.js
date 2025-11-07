@@ -4,12 +4,16 @@ import { createClient } from '@supabase/supabase-js';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
+import dotenv from 'dotenv';
+
+// Load environment variables
+dotenv.config({ path: '../.env' });
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-const SUPABASE_URL = 'http://srv1095294.hstgr.cloud:8000';
-const SUPABASE_ANON_KEY = 'IV50D3wm2O1lDS4RkbMgX3bmsZqwbVGGBzMLtwjN2yyMTm1yuHqPg8lbpDb1N6';
+const SUPABASE_URL = process.env.VITE_SUPABASE_URL || 'http://supabasekong-i480ws8cosk4kwkskssck8o8.72.60.222.97.sslip.io';
+const SUPABASE_ANON_KEY = process.env.VITE_SUPABASE_ANON_KEY || 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJzdXBhYmFzZSIsImlhdCI6MTc2MjQxNjA2MCwiZXhwIjo0OTE4MDg5NjYwLCJyb2xlIjoiYW5vbiJ9._WuYtfFEWBboDiZDeqERaN-F_6dFdA_ZP34KwXhFO9Q';
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 

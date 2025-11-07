@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useGoogleReCaptcha } from "react-google-recaptcha-v3";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
@@ -7,9 +8,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
 import { Mail, Phone, MapPin, Clock, Send } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 const Contact = () => {
   const { toast } = useToast();
+  const { executeRecaptcha } = useGoogleReCaptcha();
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -18,27 +21,218 @@ const Contact = () => {
     message: "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [honeypot, setHoneypot] = useState("");
+  const [submitTime, setSubmitTime] = useState<number>(0);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
+    
+    // Set submit time on first interaction (spam bots submit too fast)
+    if (submitTime === 0) {
+      setSubmitTime(Date.now());
+    }
+    
     setFormData((prev) => ({
       ...prev,
       [name]: value,
     }));
   };
 
+  // Spam detection function
+  const detectSpam = (): { isSpam: boolean; reason: string } => {
+    // 1. Honeypot check (hidden field that bots fill)
+    if (honeypot) {
+      return { isSpam: true, reason: "Honeypot triggered" };
+    }
+
+    // 2. Time-based check (submission too fast - likely bot)
+    const timeTaken = Date.now() - submitTime;
+    if (timeTaken < 3000) { // Less than 3 seconds
+      return { isSpam: true, reason: "Form submitted too quickly" };
+    }
+
+    // 3. Check for spam keywords
+    const spamKeywords = [
+      'viagra', 'cialis', 'casino', 'lottery', 'prize', 'winner',
+      'click here', 'buy now', 'limited time', 'act now', 'weight loss',
+      'make money', 'work from home', 'bitcoin', 'cryptocurrency'
+    ];
+    
+    const content = `${formData.name} ${formData.email} ${formData.subject} ${formData.message}`.toLowerCase();
+    const foundSpamKeyword = spamKeywords.find(keyword => content.includes(keyword));
+    if (foundSpamKeyword) {
+      return { isSpam: true, reason: `Spam keyword detected: ${foundSpamKeyword}` };
+    }
+
+    // 4. Check for excessive links (more than 3 links is suspicious)
+    const linkRegex = /(https?:\/\/[^\s]+)/g;
+    const links = formData.message.match(linkRegex) || [];
+    if (links.length > 3) {
+      return { isSpam: true, reason: "Too many links in message" };
+    }
+
+    // 5. Check for repeated characters (aaaaa, 11111)
+    const repeatedCharsRegex = /(.)\1{4,}/;
+    if (repeatedCharsRegex.test(formData.message)) {
+      return { isSpam: true, reason: "Excessive repeated characters" };
+    }
+
+    // 6. Check for email format validity
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      return { isSpam: true, reason: "Invalid email format" };
+    }
+
+    // 7. Check message length (too short or suspiciously long)
+    if (formData.message.length < 10) {
+      return { isSpam: true, reason: "Message too short" };
+    }
+    if (formData.message.length > 5000) {
+      return { isSpam: true, reason: "Message too long" };
+    }
+
+    // 8. Check for all caps message (SPAM OFTEN USES CAPS)
+    const capsRatio = (formData.message.match(/[A-Z]/g) || []).length / formData.message.length;
+    if (capsRatio > 0.5 && formData.message.length > 20) {
+      return { isSpam: true, reason: "Excessive capital letters" };
+    }
+
+    return { isSpam: false, reason: "" };
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
 
-    // Simulate form submission
-    setTimeout(() => {
-      toast({
-        title: "Message Sent!",
-        description: "We'll get back to you as soon as possible.",
-      });
+    try {
+      // Run spam detection
+      const spamCheck = detectSpam();
+      if (spamCheck.isSpam) {
+        console.warn("Spam detected:", spamCheck.reason);
+        toast({
+          title: "Submission Failed",
+          description: "Your message appears to be spam. If this is an error, please contact us directly.",
+          variant: "destructive",
+        });
+        setIsSubmitting(false);
+        return;
+      }
+
+      // Execute reCAPTCHA verification
+      if (!executeRecaptcha) {
+        console.error("reCAPTCHA not loaded");
+        toast({
+          title: "Error",
+          description: "Security verification is loading. Please try again.",
+          variant: "destructive",
+        });
+        setIsSubmitting(false);
+        return;
+      }
+
+      const recaptchaToken = await executeRecaptcha("contact_form");
+      console.log("reCAPTCHA token generated");
+
+      // Verify reCAPTCHA token with backend
+      try {
+        const verifyResponse = await fetch("http://localhost:3001/api/verify-recaptcha", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ token: recaptchaToken }),
+        });
+
+        const verifyResult = await verifyResponse.json();
+
+        if (!verifyResponse.ok || !verifyResult.success) {
+          console.error("reCAPTCHA verification failed:", verifyResult);
+          toast({
+            title: "Security Check Failed",
+            description: "Failed security verification. Please try again.",
+            variant: "destructive",
+          });
+          setIsSubmitting(false);
+          return;
+        }
+
+        console.log("reCAPTCHA verified. Score:", verifyResult.score);
+
+        // Check score (0.0 = bot, 1.0 = human)
+        if (verifyResult.score < 0.5) {
+          console.warn("Low reCAPTCHA score:", verifyResult.score);
+          toast({
+            title: "Suspicious Activity Detected",
+            description: "Your submission appears suspicious. Please contact us directly if you need assistance.",
+            variant: "destructive",
+          });
+          setIsSubmitting(false);
+          return;
+        }
+      } catch (recaptchaError) {
+        console.error("reCAPTCHA verification error:", recaptchaError);
+        // Continue anyway - don't block legitimate users if verification service is down
+      }
+      // Step 1: Save to Supabase database
+      const { data: inquiry, error: dbError } = await supabase
+        .from("contact_inquiries")
+        .insert({
+          name: formData.name,
+          email: formData.email,
+          phone: formData.phone,
+          subject: formData.subject,
+          message: formData.message,
+          status: "new"
+        })
+        .select()
+        .single();
+
+      if (dbError) {
+        console.error("Database error:", dbError);
+        throw new Error("Failed to save inquiry to database");
+      }
+
+      console.log("Inquiry saved to database:", inquiry.id);
+
+      // Step 2: Send email notification
+      try {
+        const response = await fetch("http://localhost:3001/api/send-contact-email", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(formData),
+        });
+
+        const emailResult = await response.json();
+
+        if (!response.ok) {
+          console.error("Email sending failed:", emailResult);
+          // Don't throw error - inquiry is already saved
+          toast({
+            title: "Message Saved",
+            description: "Your message was saved but email notification failed. We'll still respond to you!",
+            variant: "default",
+          });
+        } else {
+          console.log("Email sent successfully:", emailResult.messageId);
+          toast({
+            title: "Message Sent!",
+            description: "We've received your inquiry and will get back to you as soon as possible.",
+          });
+        }
+      } catch (emailError) {
+        console.error("Email error:", emailError);
+        // Email failed but inquiry is saved
+        toast({
+          title: "Message Saved",
+          description: "Your message was saved successfully. We'll respond to you soon!",
+        });
+      }
+
+      // Reset form
       setFormData({
         name: "",
         email: "",
@@ -46,8 +240,17 @@ const Contact = () => {
         subject: "",
         message: "",
       });
+
+    } catch (error) {
+      console.error("Form submission error:", error);
+      toast({
+        title: "Error",
+        description: "Failed to submit your message. Please try again or contact us directly.",
+        variant: "destructive",
+      });
+    } finally {
       setIsSubmitting(false);
-    }, 1000);
+    }
   };
 
   return (
@@ -151,6 +354,18 @@ const Contact = () => {
 
             <Card className="p-8 shadow-xl">
               <form onSubmit={handleSubmit} className="space-y-6">
+                {/* Honeypot field - hidden from users, bots will fill it */}
+                <input
+                  type="text"
+                  name="website"
+                  value={honeypot}
+                  onChange={(e) => setHoneypot(e.target.value)}
+                  style={{ position: 'absolute', left: '-9999px', width: '1px', height: '1px' }}
+                  tabIndex={-1}
+                  autoComplete="off"
+                  aria-hidden="true"
+                />
+                
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
                     <label htmlFor="name" className="text-sm font-medium">
@@ -229,21 +444,35 @@ const Contact = () => {
                   />
                 </div>
 
-                <Button
-                  type="submit"
-                  size="lg"
-                  className="w-full md:w-auto"
-                  disabled={isSubmitting}
-                >
-                  {isSubmitting ? (
-                    "Sending..."
-                  ) : (
-                    <>
-                      <Send className="mr-2" size={18} />
-                      Send Message
-                    </>
-                  )}
-                </Button>
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                  <Button
+                    type="submit"
+                    size="lg"
+                    className="w-full sm:w-auto"
+                    disabled={isSubmitting}
+                  >
+                    {isSubmitting ? (
+                      "Sending..."
+                    ) : (
+                      <>
+                        <Send className="mr-2" size={18} />
+                        Send Message
+                      </>
+                    )}
+                  </Button>
+                  
+                  <p className="text-xs text-muted-foreground text-center sm:text-right">
+                    This site is protected by reCAPTCHA and the Google{" "}
+                    <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer" className="underline">
+                      Privacy Policy
+                    </a>{" "}
+                    and{" "}
+                    <a href="https://policies.google.com/terms" target="_blank" rel="noopener noreferrer" className="underline">
+                      Terms of Service
+                    </a>{" "}
+                    apply.
+                  </p>
+                </div>
               </form>
             </Card>
           </div>

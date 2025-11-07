@@ -20,7 +20,8 @@ const LeaveRequestForm = ({ employeeId, onSuccess }: LeaveRequestFormProps) => {
   const { toast } = useToast();
 
   const [formData, setFormData] = useState({
-    date: "",
+    startDate: "",
+    endDate: "",
     leaveType: "",
     reason: "",
   });
@@ -110,14 +111,15 @@ const LeaveRequestForm = ({ employeeId, onSuccess }: LeaveRequestFormProps) => {
       // Insert leave request with file info
       const { error } = await supabase.from("attendance").insert({
         employee_id: employeeId,
-        date: formData.date,
+        date: formData.startDate,
+        leave_start_date: formData.startDate,
+        leave_end_date: formData.endDate,
         status: "Leave" as any,
         leave_type: formData.leaveType as any,
         leave_reason: formData.reason,
         supervisor_approved: false,
         admin_approved: false,
         supporting_document_url: fileUrl,
-        supporting_document_id: fileId,
       } as any);
 
       if (error) throw error;
@@ -130,7 +132,8 @@ const LeaveRequestForm = ({ employeeId, onSuccess }: LeaveRequestFormProps) => {
       });
 
       setFormData({
-        date: "",
+        startDate: "",
+        endDate: "",
         leaveType: "",
         reason: "",
       });
@@ -150,16 +153,39 @@ const LeaveRequestForm = ({ employeeId, onSuccess }: LeaveRequestFormProps) => {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="space-y-2">
-        <Label htmlFor="date">Leave Date*</Label>
-        <Input
-          id="date"
-          type="date"
-          value={formData.date}
-          onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-          required
-          min={new Date().toISOString().split("T")[0]}
-        />
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="startDate">Start Date*</Label>
+          <Input
+            id="startDate"
+            type="date"
+            value={formData.startDate}
+            onChange={(e) => {
+              setFormData({ ...formData, startDate: e.target.value });
+              // Auto-set end date to start date if not set
+              if (!formData.endDate || formData.endDate < e.target.value) {
+                setFormData(prev => ({ ...prev, startDate: e.target.value, endDate: e.target.value }));
+              }
+            }}
+            required
+            min={new Date().toISOString().split("T")[0]}
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="endDate">End Date*</Label>
+          <Input
+            id="endDate"
+            type="date"
+            value={formData.endDate}
+            onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
+            required
+            min={formData.startDate || new Date().toISOString().split("T")[0]}
+          />
+          <p className="text-xs text-muted-foreground">
+            Select the same date for single-day leave
+          </p>
+        </div>
       </div>
 
       <div className="space-y-2">

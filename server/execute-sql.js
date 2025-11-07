@@ -1,12 +1,16 @@
 import fs from 'fs';
 import fetch from 'node-fetch';
+import dotenv from 'dotenv';
+
+// Load environment variables
+dotenv.config({ path: '../.env' });
 
 // Read SQL file
 const sql = fs.readFileSync('./setup-part1-tables.sql', 'utf8');
 
 // Your Supabase configuration
-const SUPABASE_URL = 'http://srv1095294.hstgr.cloud:8000';
-const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || 'YOUR_SERVICE_ROLE_KEY';
+const SUPABASE_URL = process.env.VITE_SUPABASE_URL || 'http://supabasekong-i480ws8cosk4kwkskssck8o8.72.60.222.97.sslip.io';
+const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_KEY || 'YOUR_SERVICE_ROLE_KEY';
 
 async function executeSql() {
   try {
