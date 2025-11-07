@@ -19,28 +19,23 @@ dotenv.config(); // Also try current directory
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// Middleware
-app.use(cors());
-app.use(express.json({ limit: '10mb' }));
+// CORS Configuration for Netlify frontend
+const corsOptions = {
+  origin: [
+    'http://localhost:5173', // Local development
+    'http://localhost:3000', // Alternative local
+    process.env.FRONTEND_URL, // Netlify URL
+    /netlify\.app$/, // Any Netlify subdomain
+    /\.netlify\.app$/ // Alternative Netlify pattern
+  ].filter(Boolean), // Remove undefined values
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
+};
 
-// Serve static frontend files in production
-if (process.env.NODE_ENV === 'production') {
-  // Serve static files from the dist directory (built frontend)
-  app.use(express.static(join(__dirname, '../dist'), {
-    setHeaders: (res, path) => {
-      // Set proper MIME types for different file extensions
-      if (path.endsWith('.js')) {
-        res.setHeader('Content-Type', 'application/javascript');
-      } else if (path.endsWith('.css')) {
-        res.setHeader('Content-Type', 'text/css');
-      } else if (path.endsWith('.html')) {
-        res.setHeader('Content-Type', 'text/html');
-      }
-    }
-  }));
-  
-  console.log('✅ Serving static files from:', join(__dirname, '../dist'));
-}
+// Middleware
+app.use(cors(corsOptions));
+app.use(express.json({ limit: '10mb' }));
 
 // Google Drive Configuration
 const GOOGLE_DRIVE_CREDENTIALS = {
@@ -903,17 +898,7 @@ Please respond to the customer at: ${email}
   }
 });
 
-// Serve React app for all non-API routes in production
-if (process.env.NODE_ENV === 'production') {
-  app.get('*', (req, res) => {
-    // Skip API routes
-    if (req.path.startsWith('/api/')) {
-      return res.status(404).json({ error: 'API endpoint not found' });
-    }
-    
-    res.sendFile(join(__dirname, '../dist', 'index.html'));
-  });
-}
+// API-only routes (no static file serving since Netlify handles frontend)
 
 // Start server
 app.listen(PORT, () => {

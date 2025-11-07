@@ -1,13 +1,35 @@
+# Netlify Configuration for BIM Portal Frontend
 [build]
   command = "npm run build"
   publish = "dist"
 
 [build.environment]
   NODE_VERSION = "18"
-  # Disable secrets scanning for documentation and server files
-  SECRETS_SCAN_OMIT_PATHS = "*.md,server/**,database/**"
 
+# API Proxy to backend on Coolify
+[[redirects]]
+  from = "/api/*"
+  to = "https://backend-api.your-domain.com/api/:splat"
+  status = 200
+  force = true
+
+# SPA routing
 [[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
+
+# Security headers
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-XSS-Protection = "1; mode=block"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+
+# Cache static assets
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"

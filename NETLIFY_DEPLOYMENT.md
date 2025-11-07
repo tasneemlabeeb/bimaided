@@ -1,54 +1,96 @@
-# Netlify Deployment Guide
+# 🚀 BIM Portal - Netlify + Coolify Deployment Guide
 
-## ✅ Changes Made
-
-1. **Removed sensitive files from Git:**
-   - `.env` and `.env.production` are now excluded from version control
-   - Added to `.gitignore` to prevent future commits
-
-2. **Created `netlify.toml`:**
-   - Configured build settings
-   - Disabled secrets scanning for documentation files
-   - Added SPA redirect rules
-
-## 🚀 Next Steps to Deploy
-
-### Step 1: Get Production Supabase Credentials
-
-Your current Supabase URL (`http://supabasekong-i480ws8cosk4kwkskssck8o8.72.60.222.97.sslip.io`) is a **local development instance** and won't work in production.
-
-**Option A: Use Supabase Cloud (Recommended - Free)**
-
-1. Go to https://supabase.com and sign up
-2. Create a new project
-3. Wait for it to finish setting up (~2 minutes)
-4. Go to **Project Settings** → **API**
-5. Copy these values:
-   - **Project URL** (looks like: `https://abcdefgh.supabase.co`)
-   - **anon/public key** (a long JWT token)
-
-**Option B: Use Your Local Supabase**
-You'll need to expose your local Supabase to the internet using:
-- ngrok
-- Cloudflare Tunnel
-- Or deploy Supabase to a cloud server
-
-### Step 2: Configure Netlify Environment Variables
-
-1. Go to your **Netlify Dashboard**: https://app.netlify.com
-2. Select your site
-3. Go to **Site settings** → **Environment variables**
-4. Click **Add a variable** and add these:
+## 📋 Architecture Overview
 
 ```
-Variable: VITE_SUPABASE_URL
-Value: https://your-project.supabase.co
+Frontend (Netlify) → Backend API (Coolify) → Supabase (Coolify)
+     ↓                       ↓                      ↓
+React SPA Build        Node.js Express API     PostgreSQL DB
 ```
 
+**Benefits of this setup:**
+- ✅ **Netlify**: Excellent for React SPAs, CDN, automatic deployments
+- ✅ **Coolify Backend**: Your existing infrastructure, internal Supabase connection
+- ✅ **Supabase on Coolify**: Keep existing database, no migration needed
+
+---
+
+## 🎯 Part 1: Deploy Backend API to Coolify
+
+### Step 1: Create Backend Service in Coolify
+
+1. **Login to your Coolify Dashboard**
+   - Go to your Coolify URL on Hostinger VPS
+
+2. **Create New Application**
+   - Click **"+ New"** → **"Application"**
+   - Choose **"Public Repository"**
+   - Repository URL: `https://github.com/tasneemlabeeb/bimsync-portal.git`
+   - Branch: `main`
+   - **Name**: `bim-portal-backend-api`
+
+3. **Configure Build Settings**
+   - Build Pack: **Docker**
+   - Dockerfile Location: `Dockerfile.backend`
+   - Port: `3001`
+   - Health Check URL: `/api/health`
+
+### Step 2: Backend Environment Variables
+
+Copy these to Coolify → Backend App → **Environment Variables**:
+
+```bash
+NODE_ENV=production
+PORT=3001
+VITE_SUPABASE_URL=http://supabasekong-i480ws8cosk4kwkskssck8o8.72.60.222.97.sslip.io
+VITE_SUPABASE_ANON_KEY=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...
+SUPABASE_SERVICE_KEY=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...
+DATABASE_URL=postgresql://postgres:417wIu14OxPmnQNpUCeieTSZ7IN6pYSa@supabase-db:5432/postgres
+JWT_SECRET=rt4h4cKZkKWezb8AwtUxN3buEKwEVqzO
+EMAIL_USER=bimaided.website@gmail.com
+EMAIL_PASSWORD=rwgy biho ilda memw
+EMAIL_TO=tasneemlabeeb@gmail.com
+VITE_RECAPTCHA_SITE_KEY=6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI
+RECAPTCHA_SECRET_KEY=your_recaptcha_secret_key_here
 ```
-Variable: VITE_SUPABASE_ANON_KEY
-Value: your-actual-anon-key-here
+
+### Step 3: Deploy Backend
+
+1. **Deploy** in Coolify
+2. **Set Custom Domain** (e.g., `api.yourdomain.com`)
+3. **Test Backend**: Visit `https://api.yourdomain.com/api/health`
+
+---
+
+## 🌐 Part 2: Deploy Frontend to Netlify
+
+### Step 1: Connect GitHub to Netlify
+
+1. **Go to Netlify.com** → Login/Signup
+2. **Import from Git** → Choose GitHub → Select `tasneemlabeeb/bimsync-portal`
+3. **Branch**: `main`
+
+### Step 2: Configure Build Settings
+
+```bash
+Build command: npm run build
+Publish directory: dist
+Node version: 18
 ```
+
+### Step 3: Frontend Environment Variables
+
+In Netlify → **Site settings** → **Environment variables**, add:
+
+```bash
+VITE_SUPABASE_URL=http://supabasekong-i480ws8cosk4kwkskssck8o8.72.60.222.97.sslip.io
+VITE_SUPABASE_ANON_KEY=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...
+VITE_API_URL=https://api.yourdomain.com
+VITE_RECAPTCHA_SITE_KEY=6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI
+NODE_ENV=production
+```
+
+**Important**: Replace `https://api.yourdomain.com` with your actual Coolify backend domain.
 
 **⚠️ IMPORTANT:** Use your PRODUCTION credentials, not the local development ones!
 
