@@ -53,7 +53,13 @@ if (USE_PROXY && isMixedContentIssue && API_URL) {
         if (url.includes('/auth/v1/')) {
           console.log('Proxying auth request through Netlify Functions');
           const proxyUrl = `${API_URL}/supabase-proxy?action=sign-in`;
-          return fetch(proxyUrl, options);
+          return fetch(proxyUrl, {
+            method: options.method || 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: options.body,
+          });
         }
         
         // Fallback to direct request (may fail with mixed content)
