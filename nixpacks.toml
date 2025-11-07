@@ -1,3 +1,0 @@
-# Nixpacks Configuration - Force Node.js server instead of SPA
-[variables]
-NIXPACKS_NO_SPA = "1"

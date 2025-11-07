@@ -3,6 +3,10 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { QUERY_CONFIG } from "@/lib/constants";
+import { useSessionManager } from "@/hooks/use-session-manager";
+
+// Page Imports
 import Landing from "./pages/Landing";
 import Services from "./pages/Services";
 import Projects from "./pages/Projects";
@@ -13,23 +17,23 @@ import Contact from "./pages/Contact";
 import Login from "./pages/Login";
 import AdminDashboard from "./pages/AdminDashboard";
 import EmployeeDashboard from "./pages/EmployeeDashboard";
-import ProtectedRoute from "./components/ProtectedRoute";
 import NotFound from "./pages/NotFound";
+
+// Service Pages
 import BIMModeling from "./pages/services/BIMModeling";
 import AdvancedBIM from "./pages/services/AdvancedBIM";
 import VDCServices from "./pages/services/VDCServices";
 import GlobalBIM from "./pages/services/GlobalBIM";
+
+// Components
 import WhatsAppWidget from "./components/WhatsAppWidget";
 import ScrollToTop from "./components/ScrollToTop";
-import { useSessionManager } from "./hooks/use-session-manager";
+import ProtectedRoute from "./components/ProtectedRoute";
 
+// Configure React Query client
 const queryClient = new QueryClient({
   defaultOptions: {
-    queries: {
-      retry: 1,
-      refetchOnWindowFocus: false,
-      staleTime: 5 * 60 * 1000, // 5 minutes
-    },
+    queries: QUERY_CONFIG,
   },
 });
 

@@ -32,10 +32,9 @@ dist-ssr
 *.sln
 *.sw?
 
-# Database and setup files (if generated locally)
-*.sql
+# Database backups and scripts (but keep migrations)
 *.backup
-*.sh
+!supabase/migrations/*.sql
 
 # Supabase
 .temp

@@ -7,62 +7,81 @@ A modern employee management and project portal built with React, TypeScript, an
 - 🔐 Role-based authentication (Admin/Employee)
 - 👥 Employee management
 - 📊 Project showcase and management
-- 📅 Attendance tracking
+- 📅 Attendance tracking with check-in/check-out
 - 📋 Assignment management
+- 🏖️ Leave request system
 - 💼 Career portal with job applications
 - 🖼️ Image upload and storage
+- 📧 Contact form
 
 ## Tech Stack
 
 - **Frontend**: React 18, TypeScript, Vite
 - **UI**: Tailwind CSS, shadcn/ui components
 - **Backend**: Supabase (PostgreSQL, Storage, Auth)
-- **State Management**: React Query
+- **State Management**: TanStack Query (React Query)
 - **Routing**: React Router v6
+- **Forms**: React Hook Form + Zod validation
 
 ## Prerequisites
 
 - Node.js 18+ and npm
-- Supabase account (cloud or self-hosted)
+- Supabase account (get one free at https://supabase.com)
 
-## Installation
+## Quick Start
+
+### 1. Install Dependencies
 
 ```bash
-# Clone the repository
-git clone <repository-url>
-cd bimsync-portal
-
-# Install dependencies
 npm install
-
-# Copy environment variables
-cp .env.example .env
-
-# Update .env with your Supabase credentials
-# VITE_SUPABASE_URL=your-supabase-url
-# VITE_SUPABASE_ANON_KEY=your-anon-key
 ```
 
-## Development
+### 2. Set Up Supabase
 
-```bash
-# Start development server
-npm run dev
+1. Go to [Supabase](https://supabase.com) and create a new project
+2. Wait for the database to initialize
+3. Go to Project Settings → API
+4. Copy your project URL and anon key
 
-# Build for production
-npm run build
+### 3. Configure Environment
 
-# Preview production build
-npm run preview
-```
-
-## Environment Variables
-
-Create a `.env` file in the root directory:
+Update `.env` file with your Supabase credentials:
 
 ```env
-VITE_SUPABASE_URL=your-supabase-project-url
-VITE_SUPABASE_ANON_KEY=your-supabase-anon-key
+VITE_SUPABASE_URL=https://your-project-ref.supabase.co
+VITE_SUPABASE_ANON_KEY=your-anon-key-here
+```
+
+### 4. Set Up Database Schema
+
+You'll need to create the following tables in your Supabase dashboard:
+
+#### Tables:
+- `employees` - Employee records
+- `projects` - Project information
+- `attendance` - Check-in/check-out records
+- `assignments` - Employee assignments
+- `leave_requests` - Leave management
+- `career_postings` - Job postings
+- `job_applications` - Career applications
+
+**See `supabase/` folder for complete SQL schema** (to be added)
+
+### 5. Run Development Server
+
+```bash
+npm run dev
+```
+
+Open http://localhost:5173 to view the app.
+
+## Available Scripts
+
+```bash
+npm run dev      # Start development server
+npm run build    # Build for production
+npm run preview  # Preview production build
+npm run lint     # Run ESLint
 ```
 
 ## Project Structure
@@ -70,26 +89,34 @@ VITE_SUPABASE_ANON_KEY=your-supabase-anon-key
 ```
 src/
 ├── components/         # Reusable UI components
-│   ├── admin/         # Admin-specific components
-│   ├── employee/      # Employee-specific components
-│   └── ui/            # shadcn/ui components
+│   ├── admin/         # Admin dashboard components
+│   ├── employee/      # Employee portal components
+│   └── ui/            # shadcn/ui base components
 ├── pages/             # Route pages
 ├── hooks/             # Custom React hooks
 ├── lib/               # Utility functions
-├── services/          # API services
-└── integrations/      # Third-party integrations
+├── integrations/      # Supabase integration
+│   └── supabase/      # Supabase client & types
+└── assets/            # Static assets
 ```
 
-## Database Setup
+## Authentication
 
-Set up your Supabase database with the required tables and policies. The schema includes:
+The app uses Supabase Auth with the following default credentials structure:
 
-- Users and roles
-- Employees and departments
-- Projects and assignments
-- Attendance records
-- Leave management
-- Career postings
+- **Admin Role**: Full access to all features
+- **Employee Role**: Limited to employee portal features
+
+Configure Row Level Security (RLS) policies in Supabase for data protection.
+
+## Storage
+
+Supabase Storage is used for:
+- Project images
+- Employee profile pictures
+- Document uploads
+
+Set up storage buckets in your Supabase dashboard.
 
 ## Contributing
 
