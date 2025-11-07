@@ -5,7 +5,7 @@
 
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = process.env.VITE_SUPABASE_URL.replace('https://', 'http://');
+const supabaseUrl = process.env.VITE_SUPABASE_URL;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY;
 
 // Create Supabase client with HTTP (server-side, bypassing browser SSL validation)
