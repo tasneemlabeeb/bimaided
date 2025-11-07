@@ -1,0 +1,11 @@
+# Nixpacks Plan Configuration for Next.js
+# This overrides the default Nixpacks build process
+
+[phases.install]
+cmds = ["npm install --legacy-peer-deps"]
+
+[phases.build]
+cmds = ["npm run build"]
+
+[start]
+cmd = "npm run start"
