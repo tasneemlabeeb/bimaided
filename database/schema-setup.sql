@@ -17,6 +17,8 @@ CREATE TABLE IF NOT EXISTS departments (
 CREATE TABLE IF NOT EXISTS designations (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   name TEXT NOT NULL UNIQUE,
+  level TEXT CHECK (level IN ('Junior', 'Mid', 'Senior', 'Lead', 'Manager')),
+  department_id UUID REFERENCES departments(id),
   description TEXT,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
@@ -38,7 +40,7 @@ CREATE TABLE IF NOT EXISTS employees (
   designation_id UUID REFERENCES designations(id),
   supervisor_id UUID REFERENCES employees(id),
   joining_date DATE,
-  status TEXT DEFAULT 'active' CHECK (status IN ('active', 'inactive', 'terminated')),
+  employment_status TEXT DEFAULT 'Active' CHECK (employment_status IN ('Active', 'On Leave', 'Resigned', 'Terminated')),
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -182,19 +184,23 @@ ALTER TABLE job_applications ENABLE ROW LEVEL SECURITY;
 ALTER TABLE contact_inquiries ENABLE ROW LEVEL SECURITY;
 
 -- RLS Policies for user_roles
+DROP POLICY IF EXISTS "Users can view their own role" ON user_roles;
 CREATE POLICY "Users can view their own role"
   ON user_roles FOR SELECT
   USING (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "Service role can do everything on user_roles" ON user_roles;
 CREATE POLICY "Service role can do everything on user_roles"
   ON user_roles FOR ALL
   USING (true);
 
 -- RLS Policies for employees (example - adjust as needed)
+DROP POLICY IF EXISTS "Employees can view all employees" ON employees;
 CREATE POLICY "Employees can view all employees"
   ON employees FOR SELECT
   USING (true);
 
+DROP POLICY IF EXISTS "Service role can manage employees" ON employees;
 CREATE POLICY "Service role can manage employees"
   ON employees FOR ALL
   USING (true);
@@ -213,19 +219,24 @@ GRANT SELECT, INSERT ON contact_inquiries TO anon, authenticated;
 
 -- Insert default departments
 INSERT INTO departments (name, description) VALUES
-  ('Engineering', 'Engineering and technical team'),
-  ('Design', 'Design and creative team'),
-  ('Management', 'Management and administration'),
-  ('HR', 'Human Resources')
+  ('Architecture', 'Architectural design and BIM modeling'),
+  ('Engineering', 'Structural and MEP engineering'),
+  ('VDC', 'Virtual Design and Construction'),
+  ('Human Resources', 'HR and administration'),
+  ('Management', 'Project and business management')
 ON CONFLICT (name) DO NOTHING;
 
 -- Insert default designations
-INSERT INTO designations (name, description) VALUES
-  ('BIM Manager', 'BIM project manager'),
-  ('BIM Coordinator', 'BIM coordination specialist'),
-  ('BIM Modeler', 'BIM modeling specialist'),
-  ('Architect', 'Licensed architect'),
-  ('Engineer', 'Professional engineer')
+INSERT INTO designations (name, level, department_id, description) VALUES
+  ('BIM Manager', 'Manager', (SELECT id FROM departments WHERE name = 'Architecture' LIMIT 1), 'BIM project manager'),
+  ('Senior Architect', 'Senior', (SELECT id FROM departments WHERE name = 'Architecture' LIMIT 1), 'Senior architectural designer'),
+  ('BIM Modeler', 'Mid', (SELECT id FROM departments WHERE name = 'Architecture' LIMIT 1), 'BIM modeling specialist'),
+  ('Revit Technician', 'Junior', (SELECT id FROM departments WHERE name = 'Architecture' LIMIT 1), 'Revit drafting and modeling'),
+  ('BIM Coordinator', 'Mid', (SELECT id FROM departments WHERE name = 'VDC' LIMIT 1), 'BIM coordination specialist'),
+  ('Structural Engineer', 'Senior', (SELECT id FROM departments WHERE name = 'Engineering' LIMIT 1), 'Structural engineering specialist'),
+  ('MEP Engineer', 'Mid', (SELECT id FROM departments WHERE name = 'Engineering' LIMIT 1), 'MEP engineering specialist'),
+  ('HR Manager', 'Manager', (SELECT id FROM departments WHERE name = 'Human Resources' LIMIT 1), 'Human resources manager'),
+  ('Project Manager', 'Manager', (SELECT id FROM departments WHERE name = 'Management' LIMIT 1), 'Project management lead')
 ON CONFLICT (name) DO NOTHING;
 
 -- Create indexes for better performance

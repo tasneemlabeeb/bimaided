@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Users, UserPlus, Calendar, LogOut, Briefcase, ClipboardList, Globe } from "lucide-react";
+import { Users, UserPlus, Calendar, LogOut, Briefcase, ClipboardList, Globe, DollarSign } from "lucide-react";
 import AddEmployeeForm from "@/components/admin/AddEmployeeForm";
 import EmployeeList from "@/components/admin/EmployeeList";
 import LeaveRequests from "@/components/admin/LeaveRequests";
@@ -19,6 +19,7 @@ import ManualAttendanceEntry from "@/components/admin/ManualAttendanceEntry";
 import IPWhitelistManager from "@/components/admin/IPWhitelistManager";
 import AttendanceRecords from "@/components/admin/AttendanceRecords";
 import ContactInquiriesManager from "@/components/admin/ContactInquiriesManager";
+import PayrollManager from "@/components/admin/PayrollManager";
 
 export default function AdminDashboard() {
   const [stats, setStats] = useState({
@@ -144,6 +145,10 @@ export default function AdminDashboard() {
             <TabsTrigger value="employees">Employees</TabsTrigger>
             <TabsTrigger value="add-employee">Add Employee</TabsTrigger>
             <TabsTrigger value="attendance">Attendance</TabsTrigger>
+            <TabsTrigger value="payroll">
+              <DollarSign size={16} className="mr-2" />
+              Payroll
+            </TabsTrigger>
             <TabsTrigger value="ip-whitelist">
               <Globe size={16} className="mr-2" />
               IP Whitelist
@@ -193,6 +198,10 @@ export default function AdminDashboard() {
                 <AttendanceRecords key={refreshKey} />
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="payroll">
+            <PayrollManager />
           </TabsContent>
 
           <TabsContent value="ip-whitelist">

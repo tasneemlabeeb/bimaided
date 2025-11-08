@@ -24,6 +24,10 @@ interface Employee {
   designation_id: string | null;
   supervisor_id: string | null;
   employment_status: string;
+  basic_salary: number | null;
+  bank_name: string | null;
+  bank_account_number: string | null;
+  bank_branch: string | null;
 }
 
 interface EditEmployeeDialogProps {
@@ -55,6 +59,10 @@ const EditEmployeeDialog = ({ employee, open, onOpenChange, onSuccess }: EditEmp
     designationId: "",
     supervisorId: "",
     employmentStatus: "Active",
+    basicSalary: "",
+    bankName: "",
+    bankAccountNumber: "",
+    bankBranch: "",
   });
 
   useEffect(() => {
@@ -80,6 +88,10 @@ const EditEmployeeDialog = ({ employee, open, onOpenChange, onSuccess }: EditEmp
         designationId: employee.designation_id || "",
         supervisorId: employee.supervisor_id || "",
         employmentStatus: employee.employment_status || "Active",
+        basicSalary: employee.basic_salary?.toString() || "",
+        bankName: employee.bank_name || "",
+        bankAccountNumber: employee.bank_account_number || "",
+        bankBranch: employee.bank_branch || "",
       });
     }
   }, [employee]);
@@ -151,6 +163,10 @@ const EditEmployeeDialog = ({ employee, open, onOpenChange, onSuccess }: EditEmp
           designationId: formData.designationId || null,
           supervisorId: formData.supervisorId || null,
           employmentStatus: formData.employmentStatus,
+          basicSalary: formData.basicSalary || null,
+          bankName: formData.bankName || null,
+          bankAccountNumber: formData.bankAccountNumber || null,
+          bankBranch: formData.bankBranch || null,
         }),
       });
 
@@ -353,6 +369,46 @@ const EditEmployeeDialog = ({ employee, open, onOpenChange, onSuccess }: EditEmp
                 id="edit-address"
                 value={formData.address}
                 onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="edit-basicSalary">
+                Basic Salary <span className="text-red-500">*</span>
+              </Label>
+              <Input
+                id="edit-basicSalary"
+                type="number"
+                value={formData.basicSalary}
+                onChange={(e) => setFormData({ ...formData, basicSalary: e.target.value })}
+                required
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="edit-bankName">Bank Name</Label>
+              <Input
+                id="edit-bankName"
+                value={formData.bankName}
+                onChange={(e) => setFormData({ ...formData, bankName: e.target.value })}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="edit-bankAccountNumber">Bank Account Number</Label>
+              <Input
+                id="edit-bankAccountNumber"
+                value={formData.bankAccountNumber}
+                onChange={(e) => setFormData({ ...formData, bankAccountNumber: e.target.value })}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="edit-bankBranch">Bank Branch</Label>
+              <Input
+                id="edit-bankBranch"
+                value={formData.bankBranch}
+                onChange={(e) => setFormData({ ...formData, bankBranch: e.target.value })}
               />
             </div>
           </div>

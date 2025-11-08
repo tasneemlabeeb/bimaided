@@ -283,11 +283,11 @@ export default function AdvancedBIM() {
       <section className="relative pt-32 pb-20 overflow-hidden">
         <div className="absolute inset-0">
           <img 
-            src="/images/bim-services/freepik__a-modern-architectural-visualization-showing-a-dig__21477.jpeg" 
+            src="/images/bim-services/Advanced BIM.jpeg" 
             alt="Advanced BIM Services Background"
             className="w-full h-full object-cover"
           />
-          <div className="absolute inset-0 bg-gradient-to-br from-black/75 via-black/65 to-black/75" />
+          <div className="absolute inset-0 bg-gradient-to-br from-sky-900/85 via-sky-700/75 to-blue-800/80" />
         </div>
         
         <div className="container mx-auto px-4 relative">
@@ -658,7 +658,7 @@ export default function AdvancedBIM() {
                   Get a Free Consultation
                 </Button>
                 <Link href="/services">
-                  <Button size="lg" variant="outline" className="text-lg px-8 border-white/30 text-white hover:bg-white/10">
+                  <Button size="lg" variant="outline" className="text-lg px-8 border-white/30 text-white bg-transparent hover:bg-white hover:text-sky-600 font-semibold backdrop-blur-sm transition-all rounded-full shadow-lg">
                     View All Services
                   </Button>
                 </Link>

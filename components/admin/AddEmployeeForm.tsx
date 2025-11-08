@@ -33,6 +33,10 @@ const AddEmployeeForm = ({ onSuccess }: AddEmployeeFormProps) => {
     designationId: "",
     supervisorId: "",
     password: "",
+    basicSalary: "",
+    bankName: "",
+    bankAccountNumber: "",
+    bankBranch: "",
   });
 
   useEffect(() => {
@@ -69,7 +73,10 @@ const AddEmployeeForm = ({ onSuccess }: AddEmployeeFormProps) => {
   };
 
   const fetchDesignations = async () => {
-    const { data, error } = await supabase.from("designations").select("*");
+    const { data, error } = await supabase
+      .from("designations")
+      .select("*, departments(name)")
+      .order("name");
     if (error) {
       console.error("Error fetching designations:", error);
       throw error;
@@ -123,6 +130,10 @@ const AddEmployeeForm = ({ onSuccess }: AddEmployeeFormProps) => {
           departmentId: formData.departmentId || null,
           designationId: formData.designationId || null,
           supervisorId: formData.supervisorId || null,
+          basicSalary: formData.basicSalary || null,
+          bankName: formData.bankName || null,
+          bankAccountNumber: formData.bankAccountNumber || null,
+          bankBranch: formData.bankBranch || null,
         }),
       });
 
@@ -154,6 +165,10 @@ const AddEmployeeForm = ({ onSuccess }: AddEmployeeFormProps) => {
         designationId: "",
         supervisorId: "",
         password: "",
+        basicSalary: "",
+        bankName: "",
+        bankAccountNumber: "",
+        bankBranch: "",
       });
 
       onSuccess();
@@ -357,6 +372,8 @@ INSERT INTO designations (name, level, department_id) VALUES
               {designations.map((desig) => (
                 <SelectItem key={desig.id} value={desig.id}>
                   {desig.name}
+                  {desig.level && ` (${desig.level})`}
+                  {desig.departments?.name && ` - ${desig.departments.name}`}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -386,6 +403,46 @@ INSERT INTO designations (name, level, department_id) VALUES
             id="address"
             value={formData.address}
             onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="basicSalary">
+            Basic Salary <span className="text-red-500">*</span>
+          </Label>
+          <Input
+            id="basicSalary"
+            type="number"
+            value={formData.basicSalary}
+            onChange={(e) => setFormData({ ...formData, basicSalary: e.target.value })}
+            required
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="bankName">Bank Name</Label>
+          <Input
+            id="bankName"
+            value={formData.bankName}
+            onChange={(e) => setFormData({ ...formData, bankName: e.target.value })}
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="bankAccountNumber">Bank Account Number</Label>
+          <Input
+            id="bankAccountNumber"
+            value={formData.bankAccountNumber}
+            onChange={(e) => setFormData({ ...formData, bankAccountNumber: e.target.value })}
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="bankBranch">Bank Branch</Label>
+          <Input
+            id="bankBranch"
+            value={formData.bankBranch}
+            onChange={(e) => setFormData({ ...formData, bankBranch: e.target.value })}
           />
         </div>
       </div>

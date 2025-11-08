@@ -18,21 +18,25 @@ export default function Landing() {
       icon: Building2,
       title: "BIM Modeling",
       description: "Comprehensive 3D modeling services for architectural, structural, and MEP systems.",
+      image: "/images/bim-services/BIM Modeling.jpeg"
     },
     {
       icon: Layers,
       title: "Advanced BIM Services",
       description: "Clash detection, 4D/5D BIM, and facility management solutions.",
+      image: "/images/bim-services/Advanced BIM.jpeg"
     },
     {
       icon: Box,
       title: "VDC Services",
       description: "Virtual Design & Construction coordination for seamless project delivery.",
+      image: "/images/bim-services/VDC.jpeg"
     },
     {
       icon: Globe,
       title: "Global BIM Services",
       description: "International BIM standards compliance and consulting services.",
+      image: "/images/bim-services/Global BIM.jpeg"
     },
   ];
 
@@ -143,15 +147,29 @@ export default function Landing() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {services.map((service, index) => (
-              <Card key={index} className="border-border hover:shadow-lg transition-shadow">
+              <Card 
+                key={index} 
+                className="border-border hover:shadow-2xl transition-all duration-500 group overflow-hidden animate-fade-in-up"
+                style={{ 
+                  animationDelay: `${index * 150}ms`,
+                  opacity: 0
+                }}
+              >
+                {/* Image Section */}
+                <div className="relative h-48 overflow-hidden">
+                  <img 
+                    src={service.image} 
+                    alt={service.title}
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
+                </div>
+
                 <CardHeader>
-                  <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4">
-                    <service.icon className="text-primary" size={24} />
-                  </div>
-                  <CardTitle>{service.title}</CardTitle>
+                  <CardTitle className="group-hover:text-primary transition-colors">{service.title}</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <CardDescription>{service.description}</CardDescription>
+                  <CardDescription className="leading-relaxed">{service.description}</CardDescription>
                 </CardContent>
               </Card>
             ))}
@@ -283,18 +301,32 @@ export default function Landing() {
       {/* CTA Section */}
       <section className="py-20">
         <div className="container mx-auto px-4">
-          <Card className="bg-gradient-to-r from-primary to-primary/90 border-0 text-white">
-            <CardHeader className="text-center py-12">
-              <CardTitle className="text-4xl mb-4 text-white">Ready to Start Your Project?</CardTitle>
-              <CardDescription className="text-xl text-white/90 mb-8">
+          <Card className="bg-gradient-to-br from-sky-600 via-blue-600 to-sky-700 border-0 text-white max-w-5xl mx-auto overflow-hidden relative shadow-2xl">
+            {/* Background Pattern */}
+            <div className="absolute inset-0 opacity-10 bg-grid-pattern" />
+            
+            <CardHeader className="text-center py-16 px-6 relative z-10">
+              <CardTitle className="text-3xl md:text-4xl lg:text-5xl font-bold mb-6 text-white drop-shadow-lg">
+                Ready to Start Your Project?
+              </CardTitle>
+              <CardDescription className="text-lg md:text-xl text-white/95 mb-10 max-w-3xl mx-auto leading-relaxed">
                 Let's discuss how we can help bring your vision to life with our BIM expertise
               </CardDescription>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Button size="lg" variant="secondary">
-                  Get In Touch
-                </Button>
+              <div className="flex flex-col sm:flex-row gap-5 justify-center">
+                <Link href="/contact">
+                  <Button 
+                    size="lg" 
+                    className="text-base md:text-lg px-8 md:px-10 py-6 bg-white text-sky-600 hover:bg-gray-50 font-semibold shadow-xl hover:scale-105 transition-all rounded-full"
+                  >
+                    Get In Touch
+                  </Button>
+                </Link>
                 <Link href="/projects">
-                  <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-primary">
+                  <Button 
+                    size="lg" 
+                    variant="outline" 
+                    className="text-base md:text-lg px-8 md:px-10 py-6 border-2 border-white text-white bg-transparent hover:bg-white hover:text-sky-600 font-semibold backdrop-blur-sm transition-all rounded-full shadow-lg"
+                  >
                     View Our Work
                   </Button>
                 </Link>

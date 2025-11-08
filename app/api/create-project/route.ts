@@ -21,8 +21,12 @@ export async function POST(req: Request) {
   try {
     const projectData = await req.json();
 
-    if (!projectData.name || !projectData.client_name) {
-      return NextResponse.json({ error: 'Project name and client name are required' }, { status: 400 });
+    // Validate required fields (title is the actual field name in the database)
+    if (!projectData.title) {
+      return NextResponse.json({ 
+        error: 'Project title is required',
+        received: projectData 
+      }, { status: 400 });
     }
 
     const { data, error } = await supabaseAdmin
@@ -32,12 +36,21 @@ export async function POST(req: Request) {
       .single();
 
     if (error) {
-      return NextResponse.json({ error: 'Failed to create project', message: error.message }, { status: 400 });
+      console.error('Database error:', error);
+      return NextResponse.json({ 
+        error: 'Failed to create project', 
+        message: error.message,
+        details: error 
+      }, { status: 400 });
     }
 
     return NextResponse.json({ success: true, message: 'Project created successfully.', project: data });
 
   } catch (error: any) {
-    return NextResponse.json({ error: 'Internal server error', message: error.message }, { status: 500 });
+    console.error('Server error:', error);
+    return NextResponse.json({ 
+      error: 'Internal server error', 
+      message: error.message 
+    }, { status: 500 });
   }
 }

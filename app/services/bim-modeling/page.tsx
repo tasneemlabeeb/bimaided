@@ -239,11 +239,11 @@ export default function BIMModeling() {
       <section className="relative pt-32 pb-20 overflow-hidden">
         <div className="absolute inset-0">
           <img 
-            src="/images/bim-services/freepik__a-modern-architectural-visualization-showing-a-dig__21477.jpeg" 
-            alt="BIM Services Background"
+            src="/images/bim-services/BIM Modeling.jpeg" 
+            alt="BIM Modeling Services Background"
             className="w-full h-full object-cover"
           />
-          <div className="absolute inset-0 bg-gradient-to-br from-black/70 via-black/60 to-black/70" />
+          <div className="absolute inset-0 bg-gradient-to-br from-sky-900/85 via-sky-700/75 to-blue-800/80" />
         </div>
         
         <div className="container mx-auto px-4 relative">
@@ -605,7 +605,7 @@ export default function BIMModeling() {
                   Schedule a Consultation
                 </Button>
                 <Link href="/services">
-                  <Button size="lg" variant="outline" className="text-lg px-8 border-white/30 text-white hover:bg-white/10">
+                  <Button size="lg" variant="outline" className="text-lg px-8 border-white/30 text-white bg-transparent hover:bg-white hover:text-sky-600 font-semibold backdrop-blur-sm transition-all rounded-full shadow-lg">
                     Explore Other Services
                   </Button>
                 </Link>

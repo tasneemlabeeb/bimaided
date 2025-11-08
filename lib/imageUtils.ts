@@ -98,29 +98,24 @@ export const uploadImage = async (
 ): Promise<string> => {
   console.log('Starting upload:', { fileName: file.name, bucket, path, fileSize: file.size });
   
-  const { supabase } = await import('@/integrations/supabase/client');
-  
-  const fileName = `${path}${Date.now()}-${file.name}`;
-  console.log('Uploading to:', fileName);
-  
-  const { data, error } = await supabase.storage
-    .from(bucket)
-    .upload(fileName, file, {
-      cacheControl: '3600',
-      upsert: false,
-    });
-  
-  console.log('Upload result:', { data, error });
-  
-  if (error) {
-    console.error('Upload error details:', error);
-    throw new Error(`Upload failed: ${error.message}`);
+  // Use API route to upload (bypasses RLS)
+  const formData = new FormData();
+  formData.append('file', file);
+  formData.append('bucket', bucket);
+  formData.append('path', path);
+
+  const response = await fetch('/api/upload-image', {
+    method: 'POST',
+    body: formData,
+  });
+
+  const result = await response.json();
+
+  if (!response.ok || !result.success) {
+    console.error('Upload error:', result);
+    throw new Error(result.error || 'Upload failed');
   }
-  
-  const { data: urlData } = supabase.storage
-    .from(bucket)
-    .getPublicUrl(data.path);
-  
-  console.log('Public URL:', urlData.publicUrl);
-  return urlData.publicUrl;
+
+  console.log('Upload successful:', result.url);
+  return result.url;
 };

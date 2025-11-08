@@ -179,12 +179,18 @@ const ProjectManager = () => {
       } as any;
 
       if (editingProject) {
-        const { error } = await supabase
-          .from("projects")
-          .update(projectData)
-          .eq("id", editingProject.id);
+        // Use API route for updating projects
+        const response = await fetch(`/api/update-project/${editingProject.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(projectData),
+        });
 
-        if (error) throw error;
+        const result = await response.json();
+
+        if (!response.ok || !result.success) {
+          throw new Error(result.error || 'Failed to update project');
+        }
 
         toast({
           title: "Project updated",
@@ -257,9 +263,16 @@ const ProjectManager = () => {
     if (!confirm("Are you sure you want to delete this project?")) return;
 
     try {
-      const { error } = await supabase.from("projects").delete().eq("id", id);
+      // Use API route for deleting projects
+      const response = await fetch(`/api/update-project/${id}`, {
+        method: 'DELETE',
+      });
 
-      if (error) throw error;
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        throw new Error(result.error || 'Failed to delete project');
+      }
 
       toast({
         title: "Project deleted",

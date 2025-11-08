@@ -3,52 +3,60 @@ import { Mail, Phone, MapPin } from "lucide-react";
 
 const Footer = () => {
   return (
-    <footer className="bg-card border-t border-border mt-20">
-      <div className="container mx-auto px-4 py-12">
+    <footer className="relative bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 border-t border-sky-500/20 mt-20 overflow-hidden">
+      {/* Background Pattern */}
+      <div className="absolute inset-0 opacity-5 bg-grid-pattern" />
+      
+      {/* Gradient Overlays */}
+      <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-b from-sky-500/10 to-transparent" />
+      <div className="absolute bottom-0 right-0 w-96 h-96 bg-sky-500/5 rounded-full blur-3xl" />
+      <div className="absolute top-20 left-20 w-64 h-64 bg-blue-500/5 rounded-full blur-3xl" />
+      
+      <div className="container mx-auto px-4 py-12 relative z-10">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div>
             <img 
               src="/Logo-BIMaided.png" 
               alt="BIMaided Logo" 
-              className="h-16 w-auto mb-4"
+              className="h-16 w-auto mb-4 brightness-0 invert"
               onError={(e) => {
                 e.currentTarget.style.display = 'none';
                 e.currentTarget.nextElementSibling?.classList.remove('hidden');
               }}
             />
-            <h3 className="text-xl font-bold text-primary mb-4 hidden">BIMaided</h3>
-            <p className="text-sm text-muted-foreground">
+            <h3 className="text-xl font-bold text-white mb-4 hidden">BIMaided</h3>
+            <p className="text-sm text-gray-300">
               Leading BIM solutions provider delivering excellence in Building Information Modeling services worldwide.
             </p>
           </div>
           
           <div>
-            <h4 className="font-semibold mb-4">Quick Links</h4>
+            <h4 className="font-semibold mb-4 text-white">Quick Links</h4>
             <div className="flex flex-col gap-2">
-              <Link href="/services" className="text-sm text-muted-foreground hover:text-primary transition-colors">
+              <Link href="/services" className="text-sm text-gray-300 hover:text-sky-400 transition-colors">
                 Services
               </Link>
-              <Link href="/projects" className="text-sm text-muted-foreground hover:text-primary transition-colors">
+              <Link href="/projects" className="text-sm text-gray-300 hover:text-sky-400 transition-colors">
                 Projects
               </Link>
-              <Link href="/about" className="text-sm text-muted-foreground hover:text-primary transition-colors">
+              <Link href="/about" className="text-sm text-gray-300 hover:text-sky-400 transition-colors">
                 About Us
               </Link>
-              <Link href="/career" className="text-sm text-muted-foreground hover:text-primary transition-colors">
+              <Link href="/career" className="text-sm text-gray-300 hover:text-sky-400 transition-colors">
                 Career
               </Link>
-              <Link href="/contact" className="text-sm text-muted-foreground hover:text-primary transition-colors">
+              <Link href="/contact" className="text-sm text-gray-300 hover:text-sky-400 transition-colors">
                 Contact
               </Link>
-              <Link href="/login" className="text-sm text-muted-foreground hover:text-primary transition-colors">
+              <Link href="/login" className="text-sm text-gray-300 hover:text-sky-400 transition-colors">
                 Employee Portal
               </Link>
             </div>
           </div>
 
           <div>
-            <h4 className="font-semibold mb-4">Services</h4>
-            <div className="flex flex-col gap-2 text-sm text-muted-foreground">
+            <h4 className="font-semibold mb-4 text-white">Services</h4>
+            <div className="flex flex-col gap-2 text-sm text-gray-300">
               <span>BIM Modeling</span>
               <span>Advanced BIM Services</span>
               <span>VDC Services</span>
@@ -57,33 +65,33 @@ const Footer = () => {
           </div>
 
           <div>
-            <h4 className="font-semibold mb-4">Contact</h4>
+            <h4 className="font-semibold mb-4 text-white">Contact</h4>
             <div className="flex flex-col gap-3">
-              <div className="flex items-start gap-2 text-sm text-muted-foreground">
-                <Mail size={16} className="text-primary mt-0.5 flex-shrink-0" />
+              <div className="flex items-start gap-2 text-sm text-gray-300">
+                <Mail size={16} className="text-sky-400 mt-0.5 flex-shrink-0" />
                 <span>info@bimaided.com</span>
               </div>
-              <div className="flex items-start gap-2 text-sm text-muted-foreground">
-                <Phone size={16} className="text-primary mt-0.5 flex-shrink-0" />
+              <div className="flex items-start gap-2 text-sm text-gray-300">
+                <Phone size={16} className="text-sky-400 mt-0.5 flex-shrink-0" />
                 <div className="flex flex-col gap-1">
                   <span>+880 1308-230988</span>
                   <span>+880 1672-843230</span>
                   <span>+880 1737-727342</span>
                 </div>
               </div>
-              <div className="flex items-start gap-2 text-sm text-muted-foreground">
-                <MapPin size={16} className="text-primary mt-0.5 flex-shrink-0" />
+              <div className="flex items-start gap-2 text-sm text-gray-300">
+                <MapPin size={16} className="text-sky-400 mt-0.5 flex-shrink-0" />
                 <span>ECB, Dhaka Cantonment, Dhaka-1206, Bangladesh</span>
               </div>
-              <div className="text-sm text-muted-foreground mt-2">
-                <p className="font-medium text-foreground">Open: Saturday-Thursday</p>
+              <div className="text-sm text-gray-300 mt-2">
+                <p className="font-medium text-white">Open: Saturday-Thursday</p>
                 <p>Time: 8:00 am – 9:00 pm</p>
               </div>
             </div>
           </div>
         </div>
 
-        <div className="border-t border-border mt-8 pt-8 text-center text-sm text-muted-foreground">
+        <div className="border-t border-sky-500/20 mt-8 pt-8 text-center text-sm text-gray-400">
           <p>&copy; {new Date().getFullYear()} BIMaided. All rights reserved.</p>
         </div>
       </div>

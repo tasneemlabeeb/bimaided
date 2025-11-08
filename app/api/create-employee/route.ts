@@ -45,7 +45,11 @@ export async function POST(req: Request) {
       joiningDate,
       departmentId,
       designationId,
-      supervisorId
+      supervisorId,
+      basicSalary,
+      bankName,
+      bankAccountNumber,
+      bankBranch
     } = await req.json();
 
     // Validate required fields
@@ -94,7 +98,6 @@ export async function POST(req: Request) {
     const { data: employeeData, error: employeeError } = await supabaseAdmin
       .from('employees')
       .insert({
-        user_id: authData.user.id,
         first_name: firstName,
         last_name: lastName,
         email: email,
@@ -102,13 +105,17 @@ export async function POST(req: Request) {
         gender: gender || null,
         date_of_birth: dateOfBirth || null,
         national_id: nationalId || null,
-        phone_number: phoneNumber || null,
+        phone: phoneNumber || null,
         address: address || null,
         joining_date: joiningDate || new Date().toISOString().split('T')[0],
         department_id: departmentId || null,
         designation_id: designationId || null,
         supervisor_id: supervisorId || null,
-        employment_status: 'Active'
+        employment_status: 'Active',
+        basic_salary: basicSalary ? parseFloat(basicSalary) : null,
+        bank_name: bankName || null,
+        bank_account_number: bankAccountNumber || null,
+        bank_branch: bankBranch || null
       })
       .select()
       .single();
