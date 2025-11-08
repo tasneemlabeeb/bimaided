@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
 export default function Login() {
@@ -20,16 +19,15 @@ export default function Login() {
     // Check if user is already logged in
     const checkUser = async () => {
       try {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (session) {
+        const response = await fetch('/api/auth/session');
+        const sessionData = await response.json();
+        
+        if (sessionData.session) {
           // Check user role
-          const { data: roleData, error: roleError } = await supabase
-            .from("user_roles")
-            .select("role")
-            .eq("user_id", session.user.id)
-            .single();
+          const roleResponse = await fetch(`/api/user-roles/${sessionData.session.user.id}`);
+          const roleData = await roleResponse.json();
 
-          if (!roleError && roleData) {
+          if (roleData.role) {
             if (roleData.role === "admin") {
               router.push("/admin");
             } else if (roleData.role === "employee") {
@@ -54,13 +52,10 @@ export default function Login() {
       // Check if the input is an EID (doesn't contain @)
       if (!emailOrEid.includes('@')) {
         // Look up the email from the employees table using EID
-        const { data: employeeData, error: employeeError } = await supabase
-          .from('employees')
-          .select('email')
-          .eq('eid', emailOrEid)
-          .single();
+        const employeeResponse = await fetch(`/api/employees/by-eid/${emailOrEid}`);
+        const employeeData = await employeeResponse.json();
 
-        if (employeeError || !employeeData) {
+        if (!employeeResponse.ok || !employeeData.email) {
           toast({
             title: "Login failed",
             description: "Invalid EID or email. Please check your credentials.",
@@ -73,29 +68,40 @@ export default function Login() {
         loginEmail = employeeData.email;
       }
 
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: loginEmail,
-        password,
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: loginEmail,
+          password,
+        }),
       });
 
-      if (error) throw error;
+      const data = await response.json();
+
+      if (!response.ok || data.error) {
+        throw new Error(data.error?.message || 'Login failed');
+      }
+
+      if (!response.ok || data.error) {
+        throw new Error(data.error?.message || 'Login failed');
+      }
 
       if (data.session) {
         // Check user role
-        const { data: roleData, error: roleError } = await supabase
-          .from("user_roles")
-          .select("role")
-          .eq("user_id", data.session.user.id)
-          .single();
+        const roleResponse = await fetch(`/api/user-roles/${data.session.user.id}`);
+        const roleData = await roleResponse.json();
 
-        if (roleError) {
-          console.error("Role fetch error:", roleError);
+        if (!roleResponse.ok || roleData.error) {
+          console.error("Role fetch error:", roleData.error);
           toast({
             title: "Role not found",
             description: "Your account doesn't have a role assigned. Please contact your administrator.",
             variant: "destructive",
           });
-          await supabase.auth.signOut();
+          await fetch('/api/auth/logout', { method: 'POST' });
           return;
         }
 
@@ -115,10 +121,11 @@ export default function Login() {
             description: "Your account has an invalid role. Please contact your administrator.",
             variant: "destructive",
           });
-          await supabase.auth.signOut();
+          await fetch('/api/auth/logout', { method: 'POST' });
         }
       }
     } catch (error: any) {
+
       console.error("Login error:", error);
       toast({
         title: "Login failed",
