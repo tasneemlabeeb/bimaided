@@ -90,7 +90,7 @@ const SupervisorAssignmentTeams = () => {
 
       // Get assignments where this employee is the supervisor
       const { data, error } = await supabase
-        .from("assignment_details" as any)
+        .from("project_assignments" as any)
         .select("*")
         .eq("supervisor_id", employeeData.id);
 

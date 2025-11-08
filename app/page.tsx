@@ -4,14 +4,28 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import ParallaxHero from "@/components/ParallaxHero";
 import { supabase } from "@/integrations/supabase/client";
-import { Building2, Layers, Box, Globe, ArrowRight, CheckCircle2 } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { Building2, Layers, Box, Globe, ArrowRight, CheckCircle2, Send } from "lucide-react";
 
 export default function Landing() {
+  const { toast } = useToast();
   const [featuredProjects, setFeaturedProjects] = useState<any[]>([]);
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    subject: "",
+    message: "",
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [honeypot, setHoneypot] = useState("");
+  const [submitTime, setSubmitTime] = useState<number>(0);
   
   const services = [
     {
@@ -111,6 +125,166 @@ export default function Landing() {
 
     fetchFeaturedProjects();
   }, []);
+
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    const { name, value } = e.target;
+    
+    // Set submit time on first interaction
+    if (submitTime === 0) {
+      setSubmitTime(Date.now());
+    }
+    
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  // Spam detection function
+  const detectSpam = (): { isSpam: boolean; reason: string } => {
+    if (honeypot) {
+      return { isSpam: true, reason: "Honeypot triggered" };
+    }
+
+    const timeTaken = Date.now() - submitTime;
+    if (timeTaken < 3000) {
+      return { isSpam: true, reason: "Form submitted too quickly" };
+    }
+
+    const spamKeywords = [
+      'viagra', 'cialis', 'casino', 'lottery', 'prize', 'winner',
+      'click here', 'buy now', 'limited time', 'act now', 'weight loss',
+      'make money', 'work from home', 'bitcoin', 'cryptocurrency'
+    ];
+    
+    const content = `${formData.name} ${formData.email} ${formData.subject} ${formData.message}`.toLowerCase();
+    const foundSpamKeyword = spamKeywords.find(keyword => content.includes(keyword));
+    if (foundSpamKeyword) {
+      return { isSpam: true, reason: `Spam keyword detected: ${foundSpamKeyword}` };
+    }
+
+    const linkRegex = /(https?:\/\/[^\s]+)/g;
+    const links = formData.message.match(linkRegex) || [];
+    if (links.length > 3) {
+      return { isSpam: true, reason: "Too many links in message" };
+    }
+
+    const repeatedCharsRegex = /(.)\1{4,}/;
+    if (repeatedCharsRegex.test(formData.message)) {
+      return { isSpam: true, reason: "Excessive repeated characters" };
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      return { isSpam: true, reason: "Invalid email format" };
+    }
+
+    if (formData.message.length < 10) {
+      return { isSpam: true, reason: "Message too short" };
+    }
+    if (formData.message.length > 5000) {
+      return { isSpam: true, reason: "Message too long" };
+    }
+
+    const capsRatio = (formData.message.match(/[A-Z]/g) || []).length / formData.message.length;
+    if (capsRatio > 0.5 && formData.message.length > 20) {
+      return { isSpam: true, reason: "Excessive capital letters" };
+    }
+
+    return { isSpam: false, reason: "" };
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+
+    try {
+      const spamCheck = detectSpam();
+      if (spamCheck.isSpam) {
+        console.warn("Spam detected:", spamCheck.reason);
+        toast({
+          title: "Submission Failed",
+          description: "Your message appears to be spam. If this is an error, please contact us directly.",
+          variant: "destructive",
+        });
+        setIsSubmitting(false);
+        return;
+      }
+
+      const { data: inquiry, error: dbError } = await supabase
+        .from("contact_inquiries")
+        .insert({
+          name: formData.name,
+          email: formData.email,
+          phone: formData.phone,
+          subject: formData.subject,
+          message: formData.message,
+        })
+        .select()
+        .single();
+
+      if (dbError) {
+        console.error("Database error:", dbError);
+        throw new Error("Failed to save inquiry to database");
+      }
+
+      console.log("Inquiry saved to database:", inquiry.id);
+
+      try {
+        const response = await fetch("/api/send-contact-email", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(formData),
+        });
+
+        const emailResult = await response.json();
+
+        if (!response.ok) {
+          console.error("Email sending failed:", emailResult);
+          toast({
+            title: "Message Saved",
+            description: "Your message was saved but email notification failed. We'll still respond to you!",
+            variant: "default",
+          });
+        } else {
+          console.log("Email sent successfully:", emailResult.messageId);
+          toast({
+            title: "Message Sent!",
+            description: "We've received your inquiry and will get back to you as soon as possible.",
+          });
+        }
+      } catch (emailError) {
+        console.error("Email error:", emailError);
+        toast({
+          title: "Message Saved",
+          description: "Your message was saved successfully. We'll respond to you soon!",
+        });
+      }
+
+      setFormData({
+        name: "",
+        email: "",
+        phone: "",
+        subject: "",
+        message: "",
+      });
+      setSubmitTime(0);
+
+    } catch (error) {
+      console.error("Form submission error:", error);
+      toast({
+        title: "Error",
+        description: "Failed to submit your message. Please try again or contact us directly.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <div className="min-h-screen">
@@ -293,6 +467,192 @@ export default function Landing() {
                   <CardDescription>Client Satisfaction</CardDescription>
                 </CardHeader>
               </Card>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Contact Form Section */}
+      <section className="py-20 bg-secondary">
+        <div className="container mx-auto px-4">
+          <div className="max-w-6xl mx-auto">
+            <div className="text-center mb-12">
+              <h2 className="text-4xl font-bold mb-4">Get In Touch</h2>
+              <p className="text-xl text-muted-foreground">
+                Have a project in mind? Let's discuss how we can help
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+              {/* Left Column - Contact Information */}
+              <div className="space-y-8">
+                <div>
+                  <h3 className="text-2xl font-bold mb-4">Send Us a Message</h3>
+                  <p className="text-muted-foreground text-lg leading-relaxed mb-6">
+                    Ready to transform your project with cutting-edge BIM solutions? Our team of experts is here to help bring your vision to life.
+                  </p>
+                  <p className="text-muted-foreground leading-relaxed">
+                    Whether you need BIM modeling, clash detection, VDC services, or any of our comprehensive solutions, we're committed to delivering exceptional results tailored to your needs.
+                  </p>
+                </div>
+
+                <div className="space-y-6">
+                  <div className="flex items-start gap-4">
+                    <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                      <CheckCircle2 className="text-primary" size={24} />
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-lg mb-1">Quick Response</h4>
+                      <p className="text-muted-foreground">We typically respond within 24 hours</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-4">
+                    <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                      <CheckCircle2 className="text-primary" size={24} />
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-lg mb-1">Expert Consultation</h4>
+                      <p className="text-muted-foreground">Free initial consultation for your project</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-4">
+                    <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                      <CheckCircle2 className="text-primary" size={24} />
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-lg mb-1">Global Reach</h4>
+                      <p className="text-muted-foreground">Serving clients worldwide with 24/7 support</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="pt-6 border-t border-border">
+                  <p className="text-sm text-muted-foreground mb-4">Prefer to reach us directly?</p>
+                  <div className="space-y-3">
+                    <p className="flex items-center gap-2 text-sm">
+                      <span className="font-medium">Email:</span>
+                      <a href="mailto:design.bimaided@gmail.com" className="text-primary hover:underline">
+                        design.bimaided@gmail.com
+                      </a>
+                    </p>
+                    <p className="flex items-center gap-2 text-sm">
+                      <span className="font-medium">Phone:</span>
+                      <span>+880 1308-230988</span>
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Right Column - Contact Form */}
+              <div>
+                <Card className="p-8 shadow-xl">
+                  <form onSubmit={handleSubmit} className="space-y-6">
+                    {/* Honeypot field */}
+                    <input
+                      type="text"
+                      name="website"
+                      value={honeypot}
+                      onChange={(e) => setHoneypot(e.target.value)}
+                      style={{ position: 'absolute', left: '-9999px', width: '1px', height: '1px' }}
+                      tabIndex={-1}
+                      autoComplete="off"
+                      aria-hidden="true"
+                    />
+                    
+                    <div className="space-y-2">
+                      <label htmlFor="name" className="text-sm font-medium">
+                        Name <span className="text-destructive">*</span>
+                      </label>
+                      <Input
+                        id="name"
+                        name="name"
+                        placeholder="Your full name"
+                        value={formData.name}
+                        onChange={handleChange}
+                        required
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <label htmlFor="email" className="text-sm font-medium">
+                        Email <span className="text-destructive">*</span>
+                      </label>
+                      <Input
+                        id="email"
+                        name="email"
+                        type="email"
+                        placeholder="your.email@example.com"
+                        value={formData.email}
+                        onChange={handleChange}
+                        required
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <label htmlFor="phone" className="text-sm font-medium">
+                        Phone Number <span className="text-destructive">*</span>
+                      </label>
+                      <Input
+                        id="phone"
+                        name="phone"
+                        type="tel"
+                        placeholder="+880 XXXX-XXXXXX"
+                        value={formData.phone}
+                        onChange={handleChange}
+                        required
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <label htmlFor="subject" className="text-sm font-medium">
+                        Subject <span className="text-destructive">*</span>
+                      </label>
+                      <Input
+                        id="subject"
+                        name="subject"
+                        placeholder="What is this regarding?"
+                        value={formData.subject}
+                        onChange={handleChange}
+                        required
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <label htmlFor="message" className="text-sm font-medium">
+                        Message <span className="text-destructive">*</span>
+                      </label>
+                      <Textarea
+                        id="message"
+                        name="message"
+                        placeholder="Tell us more about your project or inquiry..."
+                        value={formData.message}
+                        onChange={handleChange}
+                        required
+                        rows={5}
+                        className="resize-none"
+                      />
+                    </div>
+
+                    <Button
+                      type="submit"
+                      size="lg"
+                      className="w-full"
+                      disabled={isSubmitting}
+                    >
+                      {isSubmitting ? (
+                        "Sending..."
+                      ) : (
+                        <>
+                          <Send className="mr-2" size={18} />
+                          Send Message
+                        </>
+                      )}
+                    </Button>
+                  </form>
+                </Card>
+              </div>
             </div>
           </div>
         </div>

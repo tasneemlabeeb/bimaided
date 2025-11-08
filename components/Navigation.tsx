@@ -34,11 +34,12 @@ const Navigation = () => {
     <nav className="fixed w-full top-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
-          <Link href="/" className="flex items-center gap-2">
+          {/* Logo - Left side */}
+          <Link href="/" className="flex items-center gap-2 order-1 md:order-none">
             <img 
               src="/Logo-BIMaided.png" 
               alt="BIMaided Logo" 
-              className="h-14 w-auto"
+              className="h-10 md:h-12 w-auto"
               onError={(e) => {
                 e.currentTarget.style.display = 'none';
                 e.currentTarget.nextElementSibling?.classList.remove('hidden');
@@ -47,8 +48,8 @@ const Navigation = () => {
             <span className="text-2xl font-bold text-primary hidden">BIMaided</span>
           </Link>
 
-          {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center gap-8">
+          {/* Desktop Navigation - Center */}
+          <div className="hidden md:flex items-center gap-8 flex-1 justify-center">
             {navLinks.map((link) => (
               link.hasSubmenu ? (
                 <div 
@@ -107,9 +108,9 @@ const Navigation = () => {
             ))}
           </div>
 
-          {/* Mobile Menu Button */}
+          {/* Mobile Menu Button - Right side on mobile */}
           <button
-            className="md:hidden p-2"
+            className="md:hidden p-2 order-2"
             onClick={() => setIsOpen(!isOpen)}
             aria-label="Toggle menu"
           >

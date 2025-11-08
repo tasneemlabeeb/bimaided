@@ -67,7 +67,7 @@ export default function EmployeeDashboard() {
         // Wrap in try-catch in case assignments table doesn't exist yet
         try {
           const { count: assignmentSupervisorCount, error: assignmentError } = await supabase
-            .from("assignments" as any)
+            .from("project_assignments" as any)
             .select("*", { count: "exact", head: true })
             .eq("supervisor_id", employee.id);
 

@@ -18,9 +18,17 @@ export async function POST(req: Request) {
     const data = await response.json();
 
     if (data.success) {
-      return NextResponse.json({ success: true, message: 'reCAPTCHA verified successfully' });
+      return NextResponse.json({ 
+        success: true, 
+        message: 'reCAPTCHA verified successfully',
+        score: data.score || 1.0 // Include score for v3
+      });
     } else {
-      return NextResponse.json({ success: false, message: 'reCAPTCHA verification failed', 'error-codes': data['error-codes'] }, { status: 400 });
+      return NextResponse.json({ 
+        success: false, 
+        message: 'reCAPTCHA verification failed', 
+        'error-codes': data['error-codes'] 
+      }, { status: 400 });
     }
 
   } catch (error: any) {

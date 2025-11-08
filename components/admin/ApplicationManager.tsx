@@ -71,10 +71,10 @@ const ApplicationManager = () => {
   }, []);
 
   const fetchJobs = async () => {
-    const { data } = await supabase
-      .from("career_postings")
+    const { data } = await (supabase as any)
+      .from("job_postings")
       .select("id, title")
-      .eq("published", true)
+      .eq("status", "active")
       .order("title");
 
     if (data) {
@@ -85,11 +85,11 @@ const ApplicationManager = () => {
   const fetchApplications = async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("job_applications")
         .select(`
           *,
-          job_postings:career_postings(title)
+          job_postings(title)
         `)
         .order("created_at", { ascending: false });
 

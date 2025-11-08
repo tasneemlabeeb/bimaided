@@ -21,14 +21,13 @@ const CareerManager = () => {
 
   const [formData, setFormData] = useState({
     title: "",
-    departmentId: "",
+    department: "",
     location: "",
     employmentType: "",
     description: "",
     requirements: "",
-    responsibilities: "",
-    closingDate: "",
-    published: true,
+    salaryRange: "",
+    status: "active",
   });
 
   useEffect(() => {
@@ -38,10 +37,10 @@ const CareerManager = () => {
 
   const fetchPostings = async () => {
     try {
-      const { data, error } = await supabase
-        .from("career_postings")
-        .select("*, departments!career_postings_department_id_fkey(name)")
-        .order("posted_date", { ascending: false });
+      const { data, error } = await (supabase as any)
+        .from("job_postings")
+        .select("*")
+        .order("created_at", { ascending: false });
 
       if (error) throw error;
       setPostings(data || []);
@@ -58,14 +57,13 @@ const CareerManager = () => {
   const resetForm = () => {
     setFormData({
       title: "",
-      departmentId: "",
+      department: "",
       location: "",
       employmentType: "",
       description: "",
       requirements: "",
-      responsibilities: "",
-      closingDate: "",
-      published: true,
+      salaryRange: "",
+      status: "active",
     });
     setEditingPosting(null);
   };
@@ -77,35 +75,34 @@ const CareerManager = () => {
     try {
       const postingData = {
         title: formData.title,
-        department_id: formData.departmentId || null,
+        department: formData.department || null,
         location: formData.location,
         employment_type: formData.employmentType,
         description: formData.description,
         requirements: formData.requirements || null,
-        responsibilities: formData.responsibilities || null,
-        closing_date: formData.closingDate || null,
-        published: formData.published,
+        salary_range: formData.salaryRange || null,
+        status: formData.status,
       } as any;
 
       if (editingPosting) {
-        const { error } = await supabase
-          .from("career_postings")
+        const { error } = await (supabase as any)
+          .from("job_postings")
           .update(postingData)
           .eq("id", editingPosting.id);
 
         if (error) throw error;
 
         toast({
-          title: "Career posting updated",
+          title: "Job posting updated",
           description: "The posting has been updated successfully.",
         });
       } else {
-        const { error } = await supabase.from("career_postings").insert(postingData);
+        const { error } = await (supabase as any).from("job_postings").insert(postingData);
 
         if (error) throw error;
 
         toast({
-          title: "Career posting added",
+          title: "Job posting added",
           description: "The posting has been added successfully.",
         });
       }
@@ -128,14 +125,13 @@ const CareerManager = () => {
     setEditingPosting(posting);
     setFormData({
       title: posting.title,
-      departmentId: posting.department_id || "",
+      department: posting.department || "",
       location: posting.location,
       employmentType: posting.employment_type,
       description: posting.description,
       requirements: posting.requirements || "",
-      responsibilities: posting.responsibilities || "",
-      closingDate: posting.closing_date || "",
-      published: posting.published,
+      salaryRange: posting.salary_range || "",
+      status: posting.status || "active",
     });
     setDialogOpen(true);
   };
@@ -144,13 +140,13 @@ const CareerManager = () => {
     if (!confirm("Are you sure you want to delete this posting?")) return;
 
     try {
-      const { error } = await supabase.from("career_postings").delete().eq("id", id);
+      const { error } = await (supabase as any).from("job_postings").delete().eq("id", id);
 
       if (error) throw error;
 
       toast({
         title: "Posting deleted",
-        description: "The career posting has been deleted successfully.",
+        description: "The job posting has been deleted successfully.",
       });
 
       fetchPostings();
@@ -179,9 +175,9 @@ const CareerManager = () => {
           </DialogTrigger>
           <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>{editingPosting ? "Edit Career Posting" : "Add New Career Posting"}</DialogTitle>
+              <DialogTitle>{editingPosting ? "Edit Job Posting" : "Add New Job Posting"}</DialogTitle>
               <DialogDescription>
-                {editingPosting ? "Update posting information" : "Add a new career opportunity"}
+                {editingPosting ? "Update posting information" : "Add a new job opportunity"}
               </DialogDescription>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -198,18 +194,12 @@ const CareerManager = () => {
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="department">Department</Label>
-                  <Select value={formData.departmentId} onValueChange={(value) => setFormData({ ...formData, departmentId: value })}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select department" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {departments.map((dept) => (
-                        <SelectItem key={dept.id} value={dept.id}>
-                          {dept.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <Input
+                    id="department"
+                    value={formData.department}
+                    onChange={(e) => setFormData({ ...formData, department: e.target.value })}
+                    placeholder="e.g., BIM Services, Modeling"
+                  />
                 </div>
 
                 <div className="space-y-2">
@@ -230,11 +220,10 @@ const CareerManager = () => {
                     <SelectValue placeholder="Select type" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Full-time">Full-time</SelectItem>
-                    <SelectItem value="Part-time">Part-time</SelectItem>
-                    <SelectItem value="Contract">Contract</SelectItem>
-                    <SelectItem value="Remote">Remote</SelectItem>
-                    <SelectItem value="Hybrid">Hybrid</SelectItem>
+                    <SelectItem value="full_time">Full-time</SelectItem>
+                    <SelectItem value="part_time">Part-time</SelectItem>
+                    <SelectItem value="contract">Contract</SelectItem>
+                    <SelectItem value="internship">Internship</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -262,35 +251,27 @@ const CareerManager = () => {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="responsibilities">Responsibilities</Label>
-                <Textarea
-                  id="responsibilities"
-                  value={formData.responsibilities}
-                  onChange={(e) => setFormData({ ...formData, responsibilities: e.target.value })}
-                  rows={3}
-                  placeholder="List key responsibilities..."
+                <Label htmlFor="salaryRange">Salary Range</Label>
+                <Input
+                  id="salaryRange"
+                  value={formData.salaryRange}
+                  onChange={(e) => setFormData({ ...formData, salaryRange: e.target.value })}
+                  placeholder="e.g., $60,000 - $80,000"
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="closingDate">Application Closing Date</Label>
-                <Input
-                  id="closingDate"
-                  type="date"
-                  value={formData.closingDate}
-                  onChange={(e) => setFormData({ ...formData, closingDate: e.target.value })}
-                />
-              </div>
-
-              <div className="flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  id="published"
-                  checked={formData.published}
-                  onChange={(e) => setFormData({ ...formData, published: e.target.checked })}
-                  className="rounded"
-                />
-                <Label htmlFor="published">Published (visible on website)</Label>
+                <Label htmlFor="status">Status*</Label>
+                <Select value={formData.status} onValueChange={(value) => setFormData({ ...formData, status: value })} required>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="active">Active (visible on website)</SelectItem>
+                    <SelectItem value="draft">Draft</SelectItem>
+                    <SelectItem value="closed">Closed</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
               <div className="flex gap-2">
@@ -329,12 +310,12 @@ const CareerManager = () => {
             {postings.map((posting) => (
               <TableRow key={posting.id}>
                 <TableCell className="font-medium">{posting.title}</TableCell>
-                <TableCell>{posting.departments?.name || "N/A"}</TableCell>
+                <TableCell>{posting.department || "N/A"}</TableCell>
                 <TableCell>{posting.location}</TableCell>
-                <TableCell>{posting.employment_type}</TableCell>
+                <TableCell>{posting.employment_type?.replace('_', ' ')}</TableCell>
                 <TableCell>
-                  <Badge variant={posting.published ? "default" : "secondary"}>
-                    {posting.published ? "Published" : "Draft"}
+                  <Badge variant={posting.status === 'active' ? "default" : "secondary"}>
+                    {posting.status?.charAt(0).toUpperCase() + posting.status?.slice(1)}
                   </Badge>
                 </TableCell>
                 <TableCell>

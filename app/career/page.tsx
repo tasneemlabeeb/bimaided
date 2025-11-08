@@ -18,11 +18,11 @@ export default function Career() {
 
   useEffect(() => {
     const fetchCareerPostings = async () => {
-      const { data } = await supabase
-        .from("career_postings")
-        .select("*, departments!career_postings_department_id_fkey(name)")
-        .eq("published", true)
-        .order("posted_date", { ascending: false });
+      const { data } = await (supabase as any)
+        .from("job_postings")
+        .select("*")
+        .eq("status", "active")
+        .order("created_at", { ascending: false });
 
       if (data && data.length > 0) {
         setOpenings(data);
@@ -31,16 +31,16 @@ export default function Career() {
         setOpenings([
           {
             title: "Senior BIM Manager",
-            departments: { name: "BIM Services" },
+            department: "BIM Services",
             location: "Remote",
-            employment_type: "Full-time",
+            employment_type: "full_time",
             description: "Lead BIM coordination and implementation for large-scale projects.",
           },
           {
             title: "Revit Modeler",
-            departments: { name: "Modeling" },
+            department: "Modeling",
             location: "Hybrid",
-            employment_type: "Full-time",
+            employment_type: "full_time",
             description: "Create detailed architectural and structural BIM models.",
           },
         ]);
@@ -146,7 +146,7 @@ export default function Career() {
                     <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
                       <div className="flex items-center gap-2">
                         <Briefcase size={16} className="text-primary" />
-                        <span>{job.departments?.name || "N/A"}</span>
+                        <span>{job.department || "N/A"}</span>
                       </div>
                       <div className="flex items-center gap-2">
                         <MapPin size={16} className="text-primary" />
@@ -154,7 +154,7 @@ export default function Career() {
                       </div>
                       <div className="flex items-center gap-2">
                         <Clock size={16} className="text-primary" />
-                        <span>{job.employment_type}</span>
+                        <span className="capitalize">{job.employment_type?.replace('_', ' ')}</span>
                       </div>
                     </div>
                   </CardContent>

@@ -68,14 +68,10 @@ const ContactInquiriesManager = () => {
     try {
       const { data, error }: any = await supabase
         .from("employees")
-        .select("user_id, first_name, last_name");
+        .select("id, first_name, last_name");
 
       if (error) throw error;
-      // Filter for admin role in the frontend
-      const adminEmployees = data?.filter((emp: any) => 
-        emp.role === "admin" || true // Remove role check if role field doesn't exist
-      ) || [];
-      setEmployees(adminEmployees);
+      setEmployees(data || []);
     } catch (error) {
       console.error("Error fetching employees:", error);
     }
@@ -223,14 +219,12 @@ const ContactInquiriesManager = () => {
   const stats = {
     total: inquiries.length,
     new: inquiries.filter(i => i.status === "new").length,
-    inProgress: inquiries.filter(i => i.status === "in-progress").length,
-    resolved: inquiries.filter(i => i.status === "resolved").length,
   };
 
   return (
     <div className="space-y-6">
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">Total Inquiries</CardTitle>
@@ -247,43 +241,9 @@ const ContactInquiriesManager = () => {
             <div className="text-2xl font-bold text-blue-600">{stats.new}</div>
           </CardContent>
         </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">In Progress</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-yellow-600">{stats.inProgress}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Resolved</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-600">{stats.resolved}</div>
-          </CardContent>
-        </Card>
       </div>
 
-      {/* Filter */}
-      <div className="flex justify-between items-center">
-        <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-[200px]">
-            <SelectValue placeholder="Filter by status" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Inquiries</SelectItem>
-            <SelectItem value="new">New</SelectItem>
-            <SelectItem value="in-progress">In Progress</SelectItem>
-            <SelectItem value="resolved">Resolved</SelectItem>
-            <SelectItem value="closed">Closed</SelectItem>
-          </SelectContent>
-        </Select>
-
-        <Button onClick={fetchInquiries} variant="outline">
-          Refresh
-        </Button>
-      </div>
+      {/* Filter - Removed */}
 
       {/* Inquiries Table */}
       <Card>
@@ -296,21 +256,19 @@ const ContactInquiriesManager = () => {
                   <TableHead>Name</TableHead>
                   <TableHead>Contact</TableHead>
                   <TableHead>Subject</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Assigned To</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {loading ? (
                   <TableRow>
-                    <TableCell colSpan={7} className="text-center">
+                    <TableCell colSpan={5} className="text-center">
                       Loading...
                     </TableCell>
                   </TableRow>
                 ) : inquiries.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={7} className="text-center text-muted-foreground">
+                    <TableCell colSpan={5} className="text-center text-muted-foreground">
                       No inquiries found
                     </TableCell>
                   </TableRow>
@@ -337,42 +295,6 @@ const ContactInquiriesManager = () => {
                       </TableCell>
                       <TableCell className="max-w-[200px] truncate">
                         {inquiry.subject}
-                      </TableCell>
-                      <TableCell>
-                        <Select
-                          value={inquiry.status}
-                          onValueChange={(value) => handleStatusChange(inquiry.id, value)}
-                        >
-                          <SelectTrigger className="w-[130px]">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="new">New</SelectItem>
-                            <SelectItem value="in-progress">In Progress</SelectItem>
-                            <SelectItem value="resolved">Resolved</SelectItem>
-                            <SelectItem value="closed">Closed</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </TableCell>
-                      <TableCell>
-                        <Select
-                          value={inquiry.assigned_to || "unassigned"}
-                          onValueChange={(value) => 
-                            value !== "unassigned" && handleAssignTo(inquiry.id, value)
-                          }
-                        >
-                          <SelectTrigger className="w-[150px]">
-                            <SelectValue placeholder="Unassigned" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="unassigned">Unassigned</SelectItem>
-                            {employees.map((emp) => (
-                              <SelectItem key={emp.user_id} value={emp.user_id}>
-                                {emp.first_name} {emp.last_name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
                       </TableCell>
                       <TableCell>
                         <Button

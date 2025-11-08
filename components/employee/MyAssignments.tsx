@@ -85,7 +85,7 @@ const MyAssignments = () => {
       // Get full assignment details
       const assignmentIds = (memberAssignments as any[]).map(m => m.assignment_id);
       const { data: assignmentsData, error: assignmentsError } = await supabase
-        .from("assignments" as any)
+        .from("project_assignments" as any)
         .select("*")
         .in("id", assignmentIds)
         .order("deadline", { ascending: true });
@@ -140,7 +140,7 @@ const MyAssignments = () => {
   const handleMarkCompleted = async (assignmentId: string) => {
     try {
       const { error } = await supabase
-        .from("assignments" as any)
+        .from("project_assignments" as any)
         .update({ status: "completed" })
         .eq("id", assignmentId);
 

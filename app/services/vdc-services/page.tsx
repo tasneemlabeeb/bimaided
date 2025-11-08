@@ -32,93 +32,179 @@ export default function VDCServices() {
 
   const services = [
     {
-      icon: Box,
-      title: "Virtual Design Coordination",
-      description: "Comprehensive coordination of all building systems in a virtual environment before construction begins, reducing conflicts and ensuring seamless integration.",
+      icon: Ruler,
+      title: "BIM Quantity Takeoff",
+      description: "Model-based quantity extraction to support accurate cost estimation and procurement.",
+      image: "/images/vdc-services/quantity-takeoff.jpg",
       strengths: [
-        "Advanced 3D coordination workflows",
-        "Multi-discipline clash detection and resolution",
-        "Real-time collaboration platforms",
-        "Detailed coordination documentation"
+        "Reduces manual takeoff errors",
+        "Faster cost planning and budgeting",
+        "Always aligned with latest model"
       ],
       coreOffering: [
-        "3D model coordination across all disciplines",
-        "Clash detection and resolution reports",
-        "Coordination meeting facilitation",
-        "Issue tracking and resolution",
-        "Coordination drawing production"
+        "QTO for arch/struct/MEP elements",
+        "BOQ generation and structuring",
+        "Export to estimation/cost tools"
       ]
     },
     {
-      icon: Calendar,
-      title: "Construction Planning & Sequencing",
-      description: "4D BIM construction sequencing that visualizes construction timelines, identifies scheduling conflicts, and optimizes project delivery strategies.",
+      icon: Box,
+      title: "BIM Design Services",
+      description: "BIM-led architectural and engineering design for coordinated, data-driven projects.",
+      image: "/images/vdc-services/bim-design.jpg",
       strengths: [
-        "Visual project timeline development",
-        "Resource allocation optimization",
-        "Risk identification and mitigation",
-        "Stakeholder communication enhancement"
+        "Integrated multi-discipline design",
+        "Fewer clashes, better coordination",
+        "Supports sustainable and performance design"
       ],
       coreOffering: [
-        "4D construction simulation models",
-        "Phase planning and sequencing",
-        "Critical path analysis",
-        "Construction logistics planning",
-        "Schedule validation and optimization"
+        "Concept to detailed design in BIM",
+        "Architecture + engineering modeling",
+        "Model-based drawings and documentation"
+      ]
+    },
+    {
+      icon: CheckCircle2,
+      title: "BIM Clash Detection",
+      description: "Early detection of clashes between disciplines to prevent on-site rework.",
+      image: "/images/vdc-services/clash-detection.jpg",
+      strengths: [
+        "Minimizes RFIs and delays",
+        "Improves constructability",
+        "Clear, actionable clash reports"
+      ],
+      coreOffering: [
+        "Hard/soft clash checks in federated models",
+        "Clash reports with viewpoints and priorities",
+        "Support for coordination and issue tracking"
+      ]
+    },
+    {
+      icon: Layers,
+      title: "BIM Coordination Services",
+      description: "Multi-discipline model coordination for consistent, constructible project delivery.",
+      image: "/images/vdc-services/coordination.jpg",
+      strengths: [
+        "Single coordinated source of truth",
+        "Reduced design-change risk",
+        "Better communication across teams"
+      ],
+      coreOffering: [
+        "Federated model setup and maintenance",
+        "Coordination cycles and model updates",
+        "Combined services and coordinated drawings"
       ]
     },
     {
       icon: Package,
-      title: "Prefabrication Support",
-      description: "Detailed modeling and coordination support for off-site fabrication and modular construction, improving quality and reducing on-site construction time.",
+      title: "Rebar Detailing Services",
+      description: "3D rebar modeling and shop drawings for precise fabrication and placement.",
+      image: "/images/vdc-services/rebar-detailing.jpg",
       strengths: [
-        "Fabrication-ready model development",
-        "Tolerance and fit analysis",
-        "Assembly sequence planning",
-        "Quality control integration"
+        "Accurate reinforcement quantities",
+        "Reduced site interpretation errors",
+        "Better integration with openings and MEP"
       ],
       coreOffering: [
-        "Shop drawing coordination",
-        "Fabrication model preparation",
-        "Assembly planning and sequencing",
-        "Transportation and logistics coordination",
-        "Installation planning support"
-      ]
-    },
-    {
-      icon: Ruler,
-      title: "Site Logistics Planning",
-      description: "Optimize site layout, material flow, and equipment placement using 3D visualization to maximize efficiency and safety on construction sites.",
-      strengths: [
-        "3D site layout modeling",
-        "Construction zone planning",
-        "Safety analysis and planning",
-        "Material flow optimization"
-      ],
-      coreOffering: [
-        "Site mobilization planning",
-        "Crane and equipment placement studies",
-        "Material storage and staging plans",
-        "Access and circulation routing",
-        "Temporary facilities coordination"
+        "Rebar models for slabs, beams, columns, walls",
+        "Rebar shop drawings and BBS",
+        "Coordination with formwork and penetrations"
       ]
     },
     {
       icon: ClipboardCheck,
-      title: "Quality Control & QA",
-      description: "Implement digital quality management processes using BIM to track, verify, and document construction quality throughout the project lifecycle.",
+      title: "Revit Drafting Services",
+      description: "Professional Revit-based drafting for clean, consistent 2D/3D deliverables.",
+      image: "/images/vdc-services/revit-drafting.jpg",
       strengths: [
-        "Digital quality inspection workflows",
-        "Model-based quality verification",
-        "Real-time issue documentation",
-        "Compliance tracking and reporting"
+        "High-precision documentation",
+        "Fast revisions from the model",
+        "Fully aligned with client standards"
       ],
       coreOffering: [
-        "Quality inspection planning",
-        "Digital inspection checklists",
-        "As-built verification processes",
-        "Non-conformance tracking",
-        "Quality documentation and reporting"
+        "Plans, sections, elevations, details in Revit",
+        "Sheet setup, annotation, tagging",
+        "CAD/PDF to Revit conversion and families"
+      ]
+    },
+    {
+      icon: Calendar,
+      title: "4D BIM Services",
+      description: "4D simulations combining 3D models with schedules for visual construction planning.",
+      image: "/images/vdc-services/4d-bim.jpg",
+      strengths: [
+        "Clear view of sequencing and phasing",
+        "Early detection of time/logistics issues",
+        "Better communication with stakeholders"
+      ],
+      coreOffering: [
+        "Link model elements to schedule tasks",
+        "4D simulations and videos",
+        "Planned vs. actual progress visualization"
+      ]
+    },
+    {
+      icon: TrendingUp,
+      title: "5D BIM Services",
+      description: "Cost-linked BIM models for live budget control and forecasting.",
+      image: "/images/vdc-services/5d-bim.jpg",
+      strengths: [
+        "Real-time cost impact of changes",
+        "More accurate budgets and cashflow",
+        "Transparent cost breakdowns"
+      ],
+      coreOffering: [
+        "Map elements to cost codes and rates",
+        "Auto-generated cost reports from BIM",
+        "Option and value-engineering comparisons"
+      ]
+    },
+    {
+      icon: Target,
+      title: "BIM Visualization Services",
+      description: "High-quality renders, animations, and VR from BIM models for clear design communication.",
+      image: "/images/vdc-services/visualization.jpg",
+      strengths: [
+        "Easy for non-technical stakeholders",
+        "Faster approvals and buy-in",
+        "Stronger bids and marketing materials"
+      ],
+      coreOffering: [
+        "Still renders and animations",
+        "360° and VR-ready scenes",
+        "Enhanced materials, lighting, entourage"
+      ]
+    },
+    {
+      icon: Settings,
+      title: "BIM Facility Management Services",
+      description: "FM-ready BIM and asset data to support operations, maintenance, and lifecycle planning.",
+      image: "/images/vdc-services/coordination.jpg",
+      strengths: [
+        "Centralized asset and space info",
+        "Better maintenance planning",
+        "Improved long-term asset performance"
+      ],
+      coreOffering: [
+        "FM-ready models with asset tagging",
+        "COBie/custom exports to CAFM/CMMS",
+        "Space and occupancy data in the model"
+      ]
+    },
+    {
+      icon: Shield,
+      title: "BIM Management Services",
+      description: "End-to-end BIM process management from planning to digital handover.",
+      image: "/images/vdc-services/bim-management.jpg",
+      strengths: [
+        "Consistent standards and workflows",
+        "Reduced BIM-related risk",
+        "Clear roles, responsibilities, and deliverables"
+      ],
+      coreOffering: [
+        "BEP creation and BIM governance",
+        "CDE setup and model QA/QC",
+        "Managing BIM milestones and deliverables"
       ]
     }
   ];
@@ -126,28 +212,28 @@ export default function VDCServices() {
   const benefits = [
     {
       icon: Target,
-      title: "Improved Coordination",
-      description: "Identify and resolve conflicts in the virtual environment before construction, reducing costly on-site changes.",
+      title: "Enhanced Accuracy",
+      description: "Model-based workflows ensure precise quantity takeoffs, clash-free coordination, and accurate cost forecasting.",
     },
     {
       icon: Users,
-      title: "Enhanced Collaboration",
-      description: "Facilitate seamless communication between all project stakeholders with visual, data-rich models.",
+      title: "Better Collaboration",
+      description: "Centralized BIM models facilitate seamless communication between all project stakeholders and disciplines.",
     },
     {
       icon: Zap,
-      title: "Accelerated Delivery",
-      description: "Optimize construction sequencing and prefabrication to reduce overall project duration.",
+      title: "Faster Delivery",
+      description: "4D/5D BIM, prefabrication support, and early clash detection accelerate project timelines significantly.",
     },
     {
       icon: Shield,
-      title: "Risk Mitigation",
-      description: "Proactively identify and address potential issues through simulation and analysis.",
+      title: "Risk Reduction",
+      description: "Proactive coordination and visualization identify issues before construction, minimizing costly changes.",
     },
     {
       icon: TrendingUp,
-      title: "Cost Efficiency",
-      description: "Minimize waste and rework through precise planning and coordination.",
+      title: "Lifecycle Value",
+      description: "FM-ready models and comprehensive BIM management support operations long after project completion.",
     },
   ];
 
@@ -177,7 +263,7 @@ export default function VDCServices() {
             </h1>
             
             <p className="text-xl md:text-2xl text-white/90 mb-8 max-w-3xl mx-auto leading-relaxed">
-              Transform your construction process with Virtual Design and Construction. Our VDC services integrate people, processes, and technology to optimize project outcomes from planning through handover.
+              Comprehensive BIM and VDC solutions spanning design, coordination, quantity takeoff, 4D/5D simulations, visualization, facility management, and full BIM lifecycle management—delivering coordinated, data-driven projects from concept through operations.
             </p>
             
             {/* Quick Stats */}
@@ -203,9 +289,9 @@ export default function VDCServices() {
         <div className="container mx-auto px-4">
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-16">
-              <h2 className="text-4xl font-bold mb-4">Comprehensive VDC Solutions</h2>
+              <h2 className="text-4xl font-bold mb-4">11 Comprehensive VDC & BIM Services</h2>
               <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-                End-to-end virtual design and construction services for optimized project delivery
+                From quantity takeoff to facility management—complete BIM lifecycle solutions for coordinated project delivery
               </p>
             </div>
 
@@ -216,19 +302,43 @@ export default function VDCServices() {
                   className="service-card border-border hover:shadow-xl transition-all duration-500 group overflow-hidden opacity-0 translate-y-10"
                   style={{ transitionDelay: `${index * 100}ms` }}
                 >
-                  <CardHeader className="pb-4 px-10 py-10">
-                    <div className="flex items-center gap-3 mb-4">
-                      <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center">
-                        <service.icon className="text-primary" size={24} />
+                  {/* Service Image */}
+                  <div className="relative h-64 md:h-80 overflow-hidden bg-gradient-to-br from-primary/5 to-primary/10">
+                    <img 
+                      src={service.image} 
+                      alt={service.title}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                      loading="lazy"
+                      onError={(e) => {
+                        console.error(`Failed to load image: ${service.image}`);
+                        const target = e.currentTarget as HTMLImageElement;
+                        target.style.display = 'none';
+                        const parent = target.parentElement;
+                        if (parent) {
+                          parent.classList.add('bg-gradient-to-br', 'from-primary/10', 'to-primary/20');
+                        }
+                      }}
+                      onLoad={(e) => {
+                        console.log(`Successfully loaded: ${service.image}`);
+                      }}
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/20 to-transparent"></div>
+                    <div className="absolute bottom-6 left-6 right-6">
+                      <div className="flex items-center gap-3 mb-2">
+                        <div className="w-12 h-12 rounded-lg bg-primary/90 backdrop-blur-sm flex items-center justify-center">
+                          <service.icon className="text-white" size={24} />
+                        </div>
+                        <h3 className="text-2xl md:text-3xl font-bold text-white drop-shadow-lg">{service.title}</h3>
                       </div>
-                      <CardTitle className="text-2xl">{service.title}</CardTitle>
                     </div>
-                    
+                  </div>
+
+                  <CardHeader className="pb-4 px-6 md:px-10 py-6 md:py-10">
                     <CardDescription className="text-base leading-relaxed mb-8">
                       {service.description}
                     </CardDescription>
                     
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-10">
                       {/* Strengths */}
                       <div className="space-y-4 p-8 rounded-lg bg-secondary/30">
                         <h4 className="font-semibold text-base text-primary uppercase tracking-wide flex items-center gap-2 mb-5">

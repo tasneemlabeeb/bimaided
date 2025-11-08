@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Calendar, CheckCircle, Clock, Users, Trash2, Eye } from "lucide-react";
+import { Plus, Calendar, CheckCircle, Clock, Users, Trash2, Eye, UserCheck } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -43,6 +43,12 @@ interface Assignment {
   status: "in_progress" | "completed" | "approved";
   supervisor_id: string | null;
   supervisor_name: string | null;
+  supervisor?: {
+    id: string;
+    first_name: string;
+    last_name: string;
+    email: string;
+  } | null;
   created_at: string;
   members?: AssignmentMember[];
 }
@@ -95,19 +101,53 @@ const AssignmentManager = () => {
   const fetchAssignments = async () => {
     try {
       const { data, error } = await supabase
-        .from("assignment_details" as any)
+        .from("project_assignments" as any)
         .select("*")
         .order("created_at", { ascending: false });
 
       if (error) {
-        // If assignments table doesn't exist yet, just set empty assignments
+        // If project_assignments table doesn't exist yet, just set empty assignments
         console.log("Assignments feature not yet available:", error);
         setAssignments([]);
         setLoading(false);
         return;
       }
+
+      // Fetch members and supervisor for each assignment
+      const assignmentsWithMembers = await Promise.all(
+        (data || []).map(async (assignment: any) => {
+          // Fetch team members
+          const { data: members } = await supabase
+            .from("assignment_members" as any)
+            .select(`
+              id,
+              role,
+              personal_note,
+              employee_id,
+              employees!inner(first_name, last_name, email)
+            `)
+            .eq("assignment_id", assignment.id);
+
+          // Fetch supervisor details if supervisor_id exists
+          let supervisor = null;
+          if (assignment.supervisor_id) {
+            const { data: supervisorData } = await supabase
+              .from("employees")
+              .select("id, first_name, last_name, email")
+              .eq("id", assignment.supervisor_id)
+              .single();
+            supervisor = supervisorData;
+          }
+
+          return {
+            ...assignment,
+            members: members || [],
+            supervisor: supervisor
+          };
+        })
+      );
       
-      setAssignments(data as any || []);
+      setAssignments(assignmentsWithMembers as any || []);
     } catch (error: any) {
       console.log("Assignments feature not yet available:", error);
       setAssignments([]);
@@ -177,7 +217,7 @@ const AssignmentManager = () => {
       if (isEditing && editingAssignmentId) {
         // Update existing assignment
         const { error: assignmentError } = await supabase
-          .from("assignments" as any)
+          .from("project_assignments" as any)
           .update({
             title,
             project_note: projectNote || null,
@@ -218,7 +258,7 @@ const AssignmentManager = () => {
       } else {
         // Create new assignment
         const { data: assignment, error: assignmentError } = await supabase
-          .from("assignments" as any)
+          .from("project_assignments" as any)
           .insert({
             title,
             project_note: projectNote || null,
@@ -306,7 +346,7 @@ const AssignmentManager = () => {
         .single();
 
       const { error } = await supabase
-        .from("assignments" as any)
+        .from("project_assignments" as any)
         .update({
           status: "approved",
           approved_by: employeeData?.id,
@@ -336,7 +376,7 @@ const AssignmentManager = () => {
 
     try {
       const { error } = await supabase
-        .from("assignments" as any)
+        .from("project_assignments" as any)
         .delete()
         .eq("id", assignmentToDelete);
 
@@ -564,6 +604,13 @@ const AssignmentManager = () => {
                   <Calendar className="h-4 w-4 mr-2" />
                   {formatDate(assignment.start_date)} - {formatDate(assignment.deadline)}
                 </div>
+                {assignment.supervisor && (
+                  <div className="flex items-center text-sm text-muted-foreground">
+                    <UserCheck className="h-4 w-4 mr-2" />
+                    <span className="font-medium">Supervisor:</span>&nbsp;
+                    {assignment.supervisor.first_name} {assignment.supervisor.last_name}
+                  </div>
+                )}
                 <div className="flex items-center text-sm text-muted-foreground">
                   <Users className="h-4 w-4 mr-2" />
                   {assignment.members?.length || 0} team member(s)
@@ -673,13 +720,15 @@ const AssignmentManager = () => {
               <div>
                 <Label>Team Members</Label>
                 <div className="mt-2 space-y-2">
-                  {selectedAssignment.members?.map((member) => (
-                    <Card key={member.member_id}>
+                  {selectedAssignment.members?.map((member: any) => (
+                    <Card key={member.id}>
                       <CardContent className="p-4">
                         <div className="flex justify-between items-start">
                           <div>
-                            <p className="font-semibold">{member.employee_name}</p>
-                            <p className="text-sm text-muted-foreground">{member.employee_email}</p>
+                            <p className="font-semibold">
+                              {member.employees?.first_name} {member.employees?.last_name}
+                            </p>
+                            <p className="text-sm text-muted-foreground">{member.employees?.email}</p>
                           </div>
                           <Badge variant="outline">{member.role}</Badge>
                         </div>

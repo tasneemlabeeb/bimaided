@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useGoogleReCaptcha } from "react-google-recaptcha-v3";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
@@ -15,7 +14,6 @@ import Link from "next/link";
 
 export default function Contact() {
   const { toast } = useToast();
-  const { executeRecaptcha } = useGoogleReCaptcha();
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -123,61 +121,6 @@ export default function Contact() {
         return;
       }
 
-      // Execute reCAPTCHA verification
-      if (!executeRecaptcha) {
-        console.error("reCAPTCHA not loaded");
-        toast({
-          title: "Error",
-          description: "Security verification is loading. Please try again.",
-          variant: "destructive",
-        });
-        setIsSubmitting(false);
-        return;
-      }
-
-      const recaptchaToken = await executeRecaptcha("contact_form");
-      console.log("reCAPTCHA token generated");
-
-      // Verify reCAPTCHA token with backend
-      try {
-        const verifyResponse = await fetch("/api/verify-recaptcha", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ token: recaptchaToken }),
-        });
-
-        const verifyResult = await verifyResponse.json();
-
-        if (!verifyResponse.ok || !verifyResult.success) {
-          console.error("reCAPTCHA verification failed:", verifyResult);
-          toast({
-            title: "Security Check Failed",
-            description: "Failed security verification. Please try again.",
-            variant: "destructive",
-          });
-          setIsSubmitting(false);
-          return;
-        }
-
-        console.log("reCAPTCHA verified. Score:", verifyResult.score);
-
-        // Check score (0.0 = bot, 1.0 = human)
-        if (verifyResult.score < 0.5) {
-          console.warn("Low reCAPTCHA score:", verifyResult.score);
-          toast({
-            title: "Suspicious Activity Detected",
-            description: "Your submission appears suspicious. Please contact us directly if you need assistance.",
-            variant: "destructive",
-          });
-          setIsSubmitting(false);
-          return;
-        }
-      } catch (recaptchaError) {
-        console.error("reCAPTCHA verification error:", recaptchaError);
-        // Continue anyway - don't block legitimate users if verification service is down
-      }
       // Step 1: Save to Supabase database
       const { data: inquiry, error: dbError } = await supabase
         .from("contact_inquiries")
@@ -187,7 +130,6 @@ export default function Contact() {
           phone: formData.phone,
           subject: formData.subject,
           message: formData.message,
-          status: "new"
         })
         .select()
         .single();
@@ -463,18 +405,6 @@ export default function Contact() {
                       </>
                     )}
                   </Button>
-                  
-                  <p className="text-xs text-muted-foreground text-center sm:text-right">
-                    This site is protected by reCAPTCHA and the Google{" "}
-                    <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer" className="underline">
-                      Privacy Policy
-                    </a>{" "}
-                    and{" "}
-                    <a href="https://policies.google.com/terms" target="_blank" rel="noopener noreferrer" className="underline">
-                      Terms of Service
-                    </a>{" "}
-                    apply.
-                  </p>
                 </div>
               </form>
             </Card>
