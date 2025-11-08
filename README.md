@@ -118,6 +118,24 @@ Supabase Storage is used for:
 
 Set up storage buckets in your Supabase dashboard.
 
+# Database Storage Policies
+
+This repository contains SQL scripts for managing Supabase storage policies.
+
+## Files
+
+- `database/fix-storage-policies.sql` - Storage policies for project images bucket
+
+## Usage
+
+Run the SQL scripts in your Supabase SQL editor to apply the storage policies.
+
+## Storage Policies
+
+The policies allow authenticated users to:
+- Upload images to the `project-images` bucket
+- Delete images from the `project-images` bucket
+
 ## Contributing
 
 1. Create a feature branch
