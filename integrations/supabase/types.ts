@@ -183,6 +183,50 @@ export type Database = {
           },
         ]
       }
+      job_applications: {
+        Row: {
+          id: string
+          job_posting_id: string
+          applicant_name: string
+          applicant_email: string
+          applicant_phone: string
+          cv_url: string
+          status: string
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          job_posting_id: string
+          applicant_name: string
+          applicant_email: string
+          applicant_phone: string
+          cv_url: string
+          status?: string
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          job_posting_id?: string
+          applicant_name?: string
+          applicant_email?: string
+          applicant_phone?: string
+          cv_url?: string
+          status?: string
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_applications_job_posting_id_fkey"
+            columns: ["job_posting_id"]
+            isOneToOne: false
+            referencedRelation: "career_postings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       contact_inquiries: {
         Row: {
           id: string
